@@ -1,0 +1,6 @@
+{
+  "name": "News Bharat Plus",
+  "description": "Premier digital news portal providing trusted coverage across Bihar, all 38 districts, and national updates in English and Hindi.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
