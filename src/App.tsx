@@ -218,13 +218,13 @@ export default function App() {
                     disabled={adminIsSigningIn}
                     className="flex-1 py-2 text-xs font-bold text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors cursor-pointer disabled:opacity-50"
                   >
-                    {adminIsSigningIn ? 'Verifying...' : 'Sign In with SSO'}
+                    {adminIsSigningIn ? 'Verifying...' : 'Sign In'}
                   </button>
                 </div>
               </form>
             ) : (
               <div className="space-y-3 pt-1">
-                {/* Real Google SSO Button for Staff */}
+                {/* Real Google Login Button for Staff */}
                 <button
                   type="button"
                   onClick={() => {
@@ -260,7 +260,7 @@ export default function App() {
                     />
                   </svg>
                   <span>
-                    {adminIsSigningIn ? 'Signing In...' : 'Continue with Google (Staff SSO)'}
+                    {adminIsSigningIn ? 'Signing In...' : 'Continue with Google'}
                   </span>
                 </button>
 
