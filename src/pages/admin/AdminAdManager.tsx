@@ -100,19 +100,19 @@ export const AdminAdManager: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white border border-stone-200 rounded-xl p-5 shadow-xs">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-stone-900 border border-stone-800 rounded-xl p-5 shadow-lg">
         <div>
-          <h1 className="text-xl font-bold text-stone-900 font-serif">
+          <h1 className="text-xl font-bold text-white font-serif">
             Ad Campaign Manager
           </h1>
-          <p className="text-xs text-stone-500 mt-0.5">
+          <p className="text-xs text-stone-400 mt-0.5">
             Create banner campaigns, slot placements, district targeting, and review impression/click analytics.
           </p>
         </div>
 
         <button
           onClick={openCreateForm}
-          className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 cursor-pointer shadow-xs self-start sm:self-auto"
+          className="px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 cursor-pointer shadow-md self-start sm:self-auto transition-transform active:scale-95"
         >
           <Plus size={16} />
           <span>New Ad Campaign</span>
@@ -125,46 +125,46 @@ export const AdminAdManager: React.FC = () => {
           const ctr = ad.impressions > 0 ? ((ad.clicks / ad.impressions) * 100).toFixed(2) : '0.00';
 
           return (
-            <div key={ad.id} className="bg-white border border-stone-200 rounded-xl p-5 shadow-xs space-y-3 flex flex-col justify-between">
+            <div key={ad.id} className="bg-stone-900 border border-stone-800 rounded-xl p-5 shadow-lg space-y-3 flex flex-col justify-between text-stone-200">
               <div>
-                <div className="flex items-center justify-between gap-2 border-b border-stone-100 pb-2.5">
+                <div className="flex items-center justify-between gap-2 border-b border-stone-800 pb-2.5">
                   <div>
-                    <h3 className="font-bold text-sm text-stone-900 truncate">{ad.title}</h3>
-                    <div className="text-[11px] text-stone-500">Client: {ad.advertiserName}</div>
+                    <h3 className="font-bold text-sm text-white truncate">{ad.title}</h3>
+                    <div className="text-[11px] text-stone-400">Client: {ad.advertiserName}</div>
                   </div>
                   <div>
                     {isExpired ? (
-                      <span className="px-2 py-0.5 bg-stone-200 text-stone-600 rounded text-[10px] font-bold">
+                      <span className="px-2 py-0.5 bg-stone-800 text-stone-400 rounded text-[10px] font-bold">
                         Expired
                       </span>
                     ) : ad.isActive ? (
-                      <span className="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded text-[10px] font-bold">
+                      <span className="px-2 py-0.5 bg-emerald-950 text-emerald-300 border border-emerald-800 rounded text-[10px] font-bold">
                         Active
                       </span>
                     ) : (
-                      <span className="px-2 py-0.5 bg-amber-100 text-amber-800 rounded text-[10px] font-bold">
+                      <span className="px-2 py-0.5 bg-amber-950 text-amber-300 border border-amber-800 rounded text-[10px] font-bold">
                         Paused
                       </span>
                     )}
                   </div>
                 </div>
 
-                <div className="my-2.5 rounded overflow-hidden border border-stone-200 bg-stone-100">
+                <div className="my-2.5 rounded overflow-hidden border border-stone-800 bg-stone-950">
                   <img src={ad.desktopBannerUrl} alt={ad.title} className="w-full max-h-24 object-cover" />
                 </div>
 
-                <div className="grid grid-cols-3 gap-2 p-2.5 bg-stone-50 rounded-lg text-center font-mono text-xs">
+                <div className="grid grid-cols-3 gap-2 p-2.5 bg-stone-950 rounded-lg text-center font-mono text-xs border border-stone-800">
                   <div>
-                    <div className="text-stone-400 text-[10px] uppercase">Impressions</div>
-                    <div className="font-bold text-stone-800">{ad.impressions.toLocaleString()}</div>
+                    <div className="text-stone-500 text-[10px] uppercase">Impressions</div>
+                    <div className="font-bold text-white">{ad.impressions.toLocaleString()}</div>
                   </div>
                   <div>
-                    <div className="text-stone-400 text-[10px] uppercase">Clicks</div>
-                    <div className="font-bold text-blue-700">{ad.clicks.toLocaleString()}</div>
+                    <div className="text-stone-500 text-[10px] uppercase">Clicks</div>
+                    <div className="font-bold text-sky-400">{ad.clicks.toLocaleString()}</div>
                   </div>
                   <div>
-                    <div className="text-stone-400 text-[10px] uppercase">CTR</div>
-                    <div className="font-bold text-emerald-700">{ctr}%</div>
+                    <div className="text-stone-500 text-[10px] uppercase">CTR</div>
+                    <div className="font-bold text-emerald-400">{ctr}%</div>
                   </div>
                 </div>
 

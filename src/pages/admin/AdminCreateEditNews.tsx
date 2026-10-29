@@ -147,17 +147,17 @@ export const AdminCreateEditNews: React.FC<AdminCreateEditNewsProps> = ({
 
   return (
     <div className="space-y-6">
-      <div className="bg-white border border-stone-200 rounded-xl p-4 sm:p-5 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="bg-stone-900 border border-stone-800 rounded-xl p-4 sm:p-5 shadow-lg flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <button
             onClick={onBack}
-            className="p-1.5 text-stone-500 hover:text-stone-900 rounded-lg hover:bg-stone-100 cursor-pointer"
+            className="p-1.5 text-stone-400 hover:text-white rounded-lg hover:bg-stone-800 transition-colors cursor-pointer"
             title="Go Back"
           >
             <ArrowLeft size={18} />
           </button>
           <div>
-            <h1 className="text-xl font-bold text-stone-900 font-serif">
+            <h1 className="text-xl font-bold text-white font-serif">
               {existing ? 'Edit Article' : 'Create & Publish News'}
             </h1>
             {autoSavedTime && (
@@ -167,16 +167,16 @@ export const AdminCreateEditNews: React.FC<AdminCreateEditNewsProps> = ({
         </div>
 
         <div className="flex items-center flex-wrap gap-2">
-          <div className="flex bg-stone-100 rounded-lg p-1 border border-stone-200 text-xs font-semibold mr-2">
+          <div className="flex bg-stone-950 rounded-lg p-1 border border-stone-800 text-xs font-semibold mr-2">
             <button
               onClick={() => setActiveTab('editor')}
-              className={`px-3 py-1 rounded cursor-pointer ${activeTab === 'editor' ? 'bg-white shadow-2xs text-stone-900' : 'text-stone-600'}`}
+              className={`px-3 py-1 rounded cursor-pointer transition-colors ${activeTab === 'editor' ? 'bg-red-600 text-white font-bold' : 'text-stone-400 hover:text-white'}`}
             >
               Editor
             </button>
             <button
               onClick={() => setActiveTab('preview')}
-              className={`px-3 py-1 rounded cursor-pointer flex items-center gap-1 ${activeTab === 'preview' ? 'bg-white shadow-2xs text-stone-900' : 'text-stone-600'}`}
+              className={`px-3 py-1 rounded cursor-pointer flex items-center gap-1 transition-colors ${activeTab === 'preview' ? 'bg-red-600 text-white font-bold' : 'text-stone-400 hover:text-white'}`}
             >
               <Eye size={12} />
               <span>Preview</span>
@@ -184,7 +184,7 @@ export const AdminCreateEditNews: React.FC<AdminCreateEditNewsProps> = ({
             {existing && (
               <button
                 onClick={() => setActiveTab('revisions')}
-                className={`px-3 py-1 rounded cursor-pointer flex items-center gap-1 ${activeTab === 'revisions' ? 'bg-white shadow-2xs text-stone-900' : 'text-stone-600'}`}
+                className={`px-3 py-1 rounded cursor-pointer flex items-center gap-1 transition-colors ${activeTab === 'revisions' ? 'bg-red-600 text-white font-bold' : 'text-stone-400 hover:text-white'}`}
               >
                 <History size={12} />
                 <span>History ({revisions.length})</span>
@@ -231,42 +231,42 @@ export const AdminCreateEditNews: React.FC<AdminCreateEditNewsProps> = ({
       )}
 
       {activeTab === 'preview' && (
-        <div className="bg-white border border-stone-200 rounded-xl p-6 shadow-xs space-y-4">
-          <div className="flex items-center justify-between border-b border-stone-200 pb-3">
-            <span className="text-xs font-bold text-stone-500">Live Reader Preview</span>
-            <div className="flex items-center gap-1 bg-stone-100 p-1 rounded-md">
+        <div className="bg-stone-900 border border-stone-800 rounded-xl p-6 shadow-lg space-y-4">
+          <div className="flex items-center justify-between border-b border-stone-800 pb-3">
+            <span className="text-xs font-bold text-stone-400">Live Reader Preview</span>
+            <div className="flex items-center gap-1 bg-stone-950 p-1 rounded-md border border-stone-800">
               <button
                 onClick={() => setPreviewDevice('desktop')}
-                className={`p-1.5 rounded cursor-pointer ${previewDevice === 'desktop' ? 'bg-white shadow-2xs text-stone-900' : 'text-stone-400'}`}
+                className={`p-1.5 rounded cursor-pointer ${previewDevice === 'desktop' ? 'bg-stone-800 text-white font-bold' : 'text-stone-500'}`}
               >
                 <Monitor size={16} />
               </button>
               <button
                 onClick={() => setPreviewDevice('mobile')}
-                className={`p-1.5 rounded cursor-pointer ${previewDevice === 'mobile' ? 'bg-white shadow-2xs text-stone-900' : 'text-stone-400'}`}
+                className={`p-1.5 rounded cursor-pointer ${previewDevice === 'mobile' ? 'bg-stone-800 text-white font-bold' : 'text-stone-500'}`}
               >
                 <Smartphone size={16} />
               </button>
             </div>
           </div>
 
-          <div className={`mx-auto bg-stone-50 p-4 border border-stone-200 rounded-xl transition-all ${previewDevice === 'mobile' ? 'max-w-sm' : 'max-w-3xl'}`}>
-            <div className="text-xs text-red-600 font-bold uppercase mb-1">{location} · {coverage}</div>
-            <h2 className="text-xl sm:text-2xl font-bold text-stone-900 leading-snug">{headline || 'Headline will appear here'}</h2>
-            {summary && <p className="text-sm text-stone-600 italic mt-2 border-l-2 border-stone-300 pl-2">{summary}</p>}
-            <div className="my-4 aspect-16/9 rounded-lg overflow-hidden bg-stone-200">
+          <div className={`mx-auto bg-stone-950 p-4 border border-stone-800 rounded-xl transition-all ${previewDevice === 'mobile' ? 'max-w-sm' : 'max-w-3xl'}`}>
+            <div className="text-xs text-red-400 font-bold uppercase mb-1">{location} · {coverage}</div>
+            <h2 className="text-xl sm:text-2xl font-bold text-white leading-snug">{headline || 'Headline will appear here'}</h2>
+            {summary && <p className="text-sm text-stone-300 italic mt-2 border-l-2 border-stone-700 pl-2">{summary}</p>}
+            <div className="my-4 aspect-16/9 rounded-lg overflow-hidden bg-stone-800">
               <img src={coverImageUrl} alt="Preview" className="w-full h-full object-cover" />
             </div>
-            <div className="prose text-sm text-stone-800 space-y-3" dangerouslySetInnerHTML={{ __html: body || '<p>Article body will appear here...</p>' }} />
+            <div className="prose prose-invert text-sm text-stone-200 space-y-3" dangerouslySetInnerHTML={{ __html: body || '<p>Article body will appear here...</p>' }} />
           </div>
         </div>
       )}
 
       {activeTab === 'editor' && (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          <div className="lg:col-span-8 bg-white border border-stone-200 rounded-xl p-5 sm:p-6 shadow-xs space-y-5">
+          <div className="lg:col-span-8 bg-stone-900 border border-stone-800 rounded-xl p-5 sm:p-6 shadow-lg space-y-5">
             <div>
-              <label className="block text-xs font-bold text-stone-800 uppercase tracking-wider mb-1.5">
+              <label className="block text-xs font-bold text-stone-300 uppercase tracking-wider mb-1.5">
                 Article Headline <span className="text-red-500">*</span>
               </label>
               <input
@@ -275,12 +275,12 @@ export const AdminCreateEditNews: React.FC<AdminCreateEditNewsProps> = ({
                 value={headline}
                 onChange={(e) => setHeadline(e.target.value)}
                 placeholder="e.g. Patna Metro: Underground tunneling completed between Ganga Path and Mithapur..."
-                className="w-full px-3.5 py-2.5 text-base font-bold border border-stone-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:outline-hidden"
+                className="w-full px-3.5 py-2.5 text-base font-bold bg-stone-950 border border-stone-700 text-white placeholder-stone-500 rounded-lg focus:ring-2 focus:ring-red-500 focus:outline-hidden"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-stone-800 uppercase tracking-wider mb-1.5">
+              <label className="block text-xs font-bold text-stone-300 uppercase tracking-wider mb-1.5">
                 Short Summary / Deck
               </label>
               <textarea
@@ -288,12 +288,12 @@ export const AdminCreateEditNews: React.FC<AdminCreateEditNewsProps> = ({
                 value={summary}
                 onChange={(e) => setSummary(e.target.value)}
                 placeholder="2-3 sentence overview of the news story..."
-                className="w-full px-3.5 py-2 text-xs border border-stone-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:outline-hidden"
+                className="w-full px-3.5 py-2 text-xs bg-stone-950 border border-stone-700 text-white placeholder-stone-500 rounded-lg focus:ring-2 focus:ring-red-500 focus:outline-hidden"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-stone-800 uppercase tracking-wider mb-1.5">
+              <label className="block text-xs font-bold text-stone-300 uppercase tracking-wider mb-1.5">
                 Article Body (HTML supported) <span className="text-red-500">*</span>
               </label>
               <textarea
@@ -319,9 +319,9 @@ export const AdminCreateEditNews: React.FC<AdminCreateEditNewsProps> = ({
               />
             </div>
 
-            <div className="p-4 bg-stone-50 border border-stone-200 rounded-xl space-y-3">
-              <span className="text-xs font-bold text-stone-800 flex items-center gap-1.5">
-                <ImageIcon size={15} className="text-red-600" />
+            <div className="p-4 bg-stone-950 border border-stone-800 rounded-xl space-y-3">
+              <span className="text-xs font-bold text-white flex items-center gap-1.5">
+                <ImageIcon size={15} className="text-red-500" />
                 <span>Cover Image</span>
               </span>
 
@@ -329,8 +329,8 @@ export const AdminCreateEditNews: React.FC<AdminCreateEditNewsProps> = ({
                 type="text"
                 value={coverImageUrl}
                 onChange={(e) => setCoverImageUrl(e.target.value)}
-                placeholder="Image URL (/src/assets/images/...)"
-                className="w-full px-3 py-2 text-xs border border-stone-300 rounded-lg focus:ring-2 focus:ring-red-500 bg-white"
+                placeholder="Image URL..."
+                className="w-full px-3 py-2 text-xs bg-stone-900 border border-stone-700 rounded-lg text-white placeholder-stone-500 focus:ring-2 focus:ring-red-500"
               />
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -339,21 +339,21 @@ export const AdminCreateEditNews: React.FC<AdminCreateEditNewsProps> = ({
                   value={coverImageCaption}
                   onChange={(e) => setCoverImageCaption(e.target.value)}
                   placeholder="Image Caption"
-                  className="w-full px-3 py-1.5 text-xs border border-stone-300 rounded-md bg-white"
+                  className="w-full px-3 py-1.5 text-xs bg-stone-900 border border-stone-700 rounded-md text-white placeholder-stone-500"
                 />
                 <input
                   type="text"
                   value={coverImageCredit}
                   onChange={(e) => setCoverImageCredit(e.target.value)}
                   placeholder="Photo Credit (e.g. PTI / BNP Bureau)"
-                  className="w-full px-3 py-1.5 text-xs border border-stone-300 rounded-md bg-white"
+                  className="w-full px-3 py-1.5 text-xs bg-stone-900 border border-stone-700 rounded-md text-white placeholder-stone-500"
                 />
               </div>
             </div>
 
-            <div className="p-4 bg-stone-50 border border-stone-200 rounded-xl space-y-3">
-              <span className="text-xs font-bold text-stone-800 flex items-center gap-1.5">
-                <Video size={15} className="text-red-600" />
+            <div className="p-4 bg-stone-950 border border-stone-800 rounded-xl space-y-3">
+              <span className="text-xs font-bold text-white flex items-center gap-1.5">
+                <Video size={15} className="text-red-500" />
                 <span>YouTube / Video Link (Optional)</span>
               </span>
               <input
@@ -361,18 +361,18 @@ export const AdminCreateEditNews: React.FC<AdminCreateEditNewsProps> = ({
                 value={videoUrl}
                 onChange={(e) => setVideoUrl(e.target.value)}
                 placeholder="https://www.youtube.com/watch?v=..."
-                className="w-full px-3 py-2 text-xs border border-stone-300 rounded-lg focus:ring-2 focus:ring-red-500 bg-white"
+                className="w-full px-3 py-2 text-xs bg-stone-900 border border-stone-700 rounded-lg text-white placeholder-stone-500 focus:ring-2 focus:ring-red-500"
               />
 
               {videoParsed && (
                 <div className="text-xs">
                   {videoParsed.isValid ? (
-                    <div className="text-emerald-700 font-semibold flex items-center gap-1">
+                    <div className="text-emerald-400 font-semibold flex items-center gap-1">
                       <CheckCircle2 size={13} />
                       <span>Valid {videoParsed.provider?.toUpperCase()} video link confirmed</span>
                     </div>
                   ) : (
-                    <div className="text-red-600 flex items-center gap-1">
+                    <div className="text-red-400 flex items-center gap-1">
                       <AlertCircle size={13} />
                       <span>{videoParsed.error}</span>
                     </div>
@@ -385,23 +385,23 @@ export const AdminCreateEditNews: React.FC<AdminCreateEditNewsProps> = ({
                 value={videoSummary}
                 onChange={(e) => setVideoSummary(e.target.value)}
                 placeholder="1-sentence video summary..."
-                className="w-full px-3 py-1.5 text-xs border border-stone-300 rounded-md bg-white"
+                className="w-full px-3 py-1.5 text-xs bg-stone-900 border border-stone-700 rounded-md text-white placeholder-stone-500"
               />
             </div>
           </div>
 
           <div className="lg:col-span-4 space-y-5">
-            <div className="bg-white border border-stone-200 rounded-xl p-4 shadow-xs space-y-3 text-xs">
-              <h3 className="font-bold text-stone-900 border-b border-stone-100 pb-2">
+            <div className="bg-stone-900 border border-stone-800 rounded-xl p-4 shadow-lg space-y-3 text-xs">
+              <h3 className="font-bold text-white border-b border-stone-800 pb-2">
                 Location & Geography
               </h3>
 
               <div>
-                <label className="block text-stone-600 font-semibold mb-1">Coverage Scope:</label>
+                <label className="block text-stone-400 font-semibold mb-1">Coverage Scope:</label>
                 <select
                   value={coverage}
                   onChange={(e) => setCoverage(e.target.value as CoverageType)}
-                  className="w-full px-3 py-2 border border-stone-300 rounded-md bg-white"
+                  className="w-full px-3 py-2 border border-stone-700 rounded-md bg-stone-950 text-white cursor-pointer"
                 >
                   <option value="Regional">Regional / Bihar</option>
                   <option value="National">National / All India</option>
@@ -410,11 +410,11 @@ export const AdminCreateEditNews: React.FC<AdminCreateEditNewsProps> = ({
 
               {coverage === 'Regional' && (
                 <div>
-                  <label className="block text-stone-600 font-semibold mb-1">Target District:</label>
+                  <label className="block text-stone-400 font-semibold mb-1">Target District:</label>
                   <select
                     value={district}
                     onChange={(e) => setDistrict(e.target.value)}
-                    className="w-full px-3 py-2 border border-stone-300 rounded-md bg-white"
+                    className="w-full px-3 py-2 border border-stone-700 rounded-md bg-stone-950 text-white cursor-pointer"
                   >
                     {BIHAR_DISTRICTS.map(d => (
                       <option key={d.id} value={d.id}>{d.nameEn} ({d.nameHi})</option>
@@ -424,19 +424,19 @@ export const AdminCreateEditNews: React.FC<AdminCreateEditNewsProps> = ({
               )}
 
               <div>
-                <label className="block text-stone-600 font-semibold mb-1">Bureau Location Tag:</label>
+                <label className="block text-stone-400 font-semibold mb-1">Bureau Location Tag:</label>
                 <input
                   type="text"
                   value={location}
                   onChange={(e) => setLocation(e.target.value)}
                   placeholder="e.g. Patna, Gaya"
-                  className="w-full px-3 py-1.5 border border-stone-300 rounded-md bg-white"
+                  className="w-full px-3 py-1.5 border border-stone-700 rounded-md bg-stone-950 text-white"
                 />
               </div>
             </div>
 
-            <div className="bg-white border border-stone-200 rounded-xl p-4 shadow-xs space-y-3 text-xs">
-              <h3 className="font-bold text-stone-900 border-b border-stone-100 pb-2">
+            <div className="bg-stone-900 border border-stone-800 rounded-xl p-4 shadow-lg space-y-3 text-xs">
+              <h3 className="font-bold text-white border-b border-stone-800 pb-2">
                 Topics & Categories
               </h3>
               <div className="flex flex-wrap gap-1.5">
@@ -450,7 +450,7 @@ export const AdminCreateEditNews: React.FC<AdminCreateEditNewsProps> = ({
                       className={`px-2.5 py-1 rounded text-xs transition-colors cursor-pointer ${
                         isSelected 
                           ? 'bg-red-600 text-white font-bold' 
-                          : 'bg-stone-100 text-stone-700 hover:bg-stone-200'
+                          : 'bg-stone-800 text-stone-300 hover:bg-stone-700'
                       }`}
                     >
                       {t.nameEn}
@@ -460,8 +460,8 @@ export const AdminCreateEditNews: React.FC<AdminCreateEditNewsProps> = ({
               </div>
             </div>
 
-            <div className="bg-white border border-stone-200 rounded-xl p-4 shadow-xs space-y-3 text-xs">
-              <h3 className="font-bold text-stone-900 border-b border-stone-100 pb-2">
+            <div className="bg-stone-900 border border-stone-800 rounded-xl p-4 shadow-lg space-y-3 text-xs">
+              <h3 className="font-bold text-white border-b border-stone-800 pb-2">
                 Editorial Priority (Labels)
               </h3>
 
@@ -472,7 +472,7 @@ export const AdminCreateEditNews: React.FC<AdminCreateEditNewsProps> = ({
                   onChange={(e) => setIsFeatured(e.target.checked)}
                   className="accent-red-600 w-4 h-4"
                 />
-                <span className="font-semibold text-stone-800">Featured Lead Story</span>
+                <span className="font-semibold text-stone-200">Featured Lead Story</span>
               </label>
 
               <label className="flex items-center gap-2 cursor-pointer">
@@ -482,42 +482,42 @@ export const AdminCreateEditNews: React.FC<AdminCreateEditNewsProps> = ({
                   onChange={(e) => setIsBreaking(e.target.checked)}
                   className="accent-red-600 w-4 h-4"
                 />
-                <span className="font-semibold text-red-700">Breaking News Ticker</span>
+                <span className="font-semibold text-red-400">Breaking News Ticker</span>
               </label>
             </div>
 
-            <div className="bg-white border border-stone-200 rounded-xl p-4 shadow-xs space-y-3 text-xs">
-              <h3 className="font-bold text-stone-900 border-b border-stone-100 pb-2">
+            <div className="bg-stone-900 border border-stone-800 rounded-xl p-4 shadow-lg space-y-3 text-xs">
+              <h3 className="font-bold text-white border-b border-stone-800 pb-2">
                 Author & Bureau
               </h3>
               <div>
-                <label className="block text-stone-600 font-semibold mb-1">Author Name:</label>
+                <label className="block text-stone-400 font-semibold mb-1">Author Name:</label>
                 <input
                   type="text"
                   value={authorName}
                   onChange={(e) => setAuthorName(e.target.value)}
-                  className="w-full px-3 py-1.5 border border-stone-300 rounded-md bg-white"
+                  className="w-full px-3 py-1.5 border border-stone-700 rounded-md bg-stone-950 text-white"
                 />
               </div>
               <div>
-                <label className="block text-stone-600 font-semibold mb-1">Designation / Bureau:</label>
+                <label className="block text-stone-400 font-semibold mb-1">Designation / Bureau:</label>
                 <input
                   type="text"
                   value={authorRole}
                   onChange={(e) => setAuthorRole(e.target.value)}
-                  className="w-full px-3 py-1.5 border border-stone-300 rounded-md bg-white"
+                  className="w-full px-3 py-1.5 border border-stone-700 rounded-md bg-stone-950 text-white"
                 />
               </div>
             </div>
 
-            <div className="bg-white border border-stone-200 rounded-xl p-4 shadow-xs space-y-3 text-xs">
-              <h3 className="font-bold text-stone-900 border-b border-stone-100 pb-2">
+            <div className="bg-stone-900 border border-stone-800 rounded-xl p-4 shadow-lg space-y-3 text-xs">
+              <h3 className="font-bold text-white border-b border-stone-800 pb-2">
                 Publishing Status & Schedule
               </h3>
               <select
                 value={status}
                 onChange={(e) => setStatus(e.target.value as ArticleStatus)}
-                className="w-full px-3 py-2 border border-stone-300 rounded-md bg-white font-bold"
+                className="w-full px-3 py-2 border border-stone-700 rounded-md bg-stone-950 text-white font-bold cursor-pointer"
               >
                 <option value="published">Publish Immediately</option>
                 <option value="draft">Save as Draft</option>
@@ -527,12 +527,12 @@ export const AdminCreateEditNews: React.FC<AdminCreateEditNewsProps> = ({
 
               {status === 'scheduled' && (
                 <div>
-                  <label className="block text-stone-600 font-semibold mb-1">Scheduled Time (IST):</label>
+                  <label className="block text-stone-400 font-semibold mb-1">Scheduled Time (IST):</label>
                   <input
                     type="datetime-local"
                     value={scheduledAt}
                     onChange={(e) => setScheduledAt(e.target.value)}
-                    className="w-full px-3 py-1.5 border border-stone-300 rounded-md bg-white"
+                    className="w-full px-3 py-1.5 border border-stone-700 rounded-md bg-stone-950 text-white"
                   />
                 </div>
               )}

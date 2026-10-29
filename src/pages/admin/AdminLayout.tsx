@@ -171,7 +171,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
   );
 
   return (
-    <div className="min-h-screen bg-stone-100 flex flex-col md:flex-row">
+    <div className="min-h-screen bg-stone-950 text-stone-100 flex flex-col md:flex-row">
       {/* Desktop Sidebar */}
       <aside className="hidden md:flex w-64 bg-stone-900 text-stone-300 flex-col shrink-0 border-r border-stone-800">
         <div className="p-4 border-b border-stone-800">

@@ -764,6 +764,12 @@ class NewsStore {
     }
   }
 
+  public deleteMedia(id: string) {
+    this.media = this.media.filter(m => m.id !== id);
+    this.saveMedia();
+    this.notify();
+  }
+
   public runScheduledMediaCleanup(): CleanupLog {
     const mediaWithRefs = this.getMedia();
     const logDetails: string[] = [];

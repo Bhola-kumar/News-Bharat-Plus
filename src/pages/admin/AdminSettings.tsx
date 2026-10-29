@@ -4,9 +4,8 @@
  */
 
 import React, { useState } from 'react';
-import { Save, CheckCircle2, Shield, Globe, MapPin, Users } from 'lucide-react';
+import { Save, CheckCircle2, Globe, Shield } from 'lucide-react';
 import { useNewsStore } from '../../lib/newsStore';
-import { BIHAR_DISTRICTS, TOPICS } from '../../lib/constants';
 
 export const AdminSettings: React.FC = () => {
   const store = useNewsStore();
@@ -54,172 +53,160 @@ export const AdminSettings: React.FC = () => {
 
   return (
     <div className="space-y-6 max-w-4xl">
-      <div className="bg-white border border-stone-200 rounded-xl p-5 shadow-xs">
-        <h1 className="text-xl font-bold text-stone-900 font-serif">
+      <div className="bg-stone-900 border border-stone-800 rounded-xl p-5 shadow-lg">
+        <h1 className="text-xl font-bold text-white font-serif">
           Portal Settings & Configuration
         </h1>
-        <p className="text-xs text-stone-500 mt-0.5">
+        <p className="text-xs text-stone-400 mt-0.5">
           Branding, contact details, grievance officer, social profiles, and default portal metadata.
         </p>
       </div>
 
-      <form onSubmit={handleSave} className="bg-white border border-stone-200 rounded-xl p-6 shadow-xs space-y-6 text-xs">
+      <form onSubmit={handleSave} className="bg-stone-900 border border-stone-800 rounded-xl p-6 shadow-lg space-y-6 text-xs text-stone-200">
         <div>
-          <h2 className="text-sm font-bold text-stone-900 font-serif border-b border-stone-200 pb-2 mb-3 flex items-center gap-2">
-            <Globe size={16} className="text-red-600" />
+          <h2 className="text-sm font-bold text-white font-serif border-b border-stone-800 pb-2 mb-3 flex items-center gap-2">
+            <Globe size={16} className="text-red-500" />
             <span>Brand & Identity</span>
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block font-semibold text-stone-700 mb-1">Portal Name (Hindi)</label>
+              <label className="block font-semibold text-stone-300 mb-1">Portal Name (Hindi)</label>
               <input
                 type="text"
                 value={siteNameHi}
                 onChange={(e) => setSiteNameHi(e.target.value)}
-                className="w-full px-3 py-2 border border-stone-300 rounded-lg font-bold"
+                className="w-full px-3 py-2 bg-stone-950 border border-stone-700 rounded-lg font-bold text-white"
               />
             </div>
             <div>
-              <label className="block font-semibold text-stone-700 mb-1">Portal Name (English)</label>
+              <label className="block font-semibold text-stone-300 mb-1">Portal Name (English)</label>
               <input
                 type="text"
                 value={siteNameEn}
                 onChange={(e) => setSiteNameEn(e.target.value)}
-                className="w-full px-3 py-2 border border-stone-300 rounded-lg font-bold"
+                className="w-full px-3 py-2 bg-stone-950 border border-stone-700 rounded-lg font-bold text-white"
               />
             </div>
             <div className="sm:col-span-2">
-              <label className="block font-semibold text-stone-700 mb-1">Tagline</label>
+              <label className="block font-semibold text-stone-300 mb-1">Tagline</label>
               <input
                 type="text"
                 value={taglineHi}
                 onChange={(e) => setTaglineHi(e.target.value)}
-                className="w-full px-3 py-2 border border-stone-300 rounded-lg"
+                className="w-full px-3 py-2 bg-stone-950 border border-stone-700 rounded-lg text-white"
               />
             </div>
           </div>
         </div>
 
         <div>
-          <h2 className="text-sm font-bold text-stone-900 font-serif border-b border-stone-200 pb-2 mb-3 flex items-center gap-2">
-            <Shield size={16} className="text-red-600" />
-            <span>Legal, Editorial & Compliance</span>
+          <h2 className="text-sm font-bold text-white font-serif border-b border-stone-800 pb-2 mb-3 flex items-center gap-2">
+            <Shield size={16} className="text-red-500" />
+            <span>Editorial & Grievance Governance</span>
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block font-semibold text-stone-700 mb-1">Chief Editor Name</label>
+              <label className="block font-semibold text-stone-300 mb-1">Editor-in-Chief Name</label>
               <input
                 type="text"
                 value={editorName}
                 onChange={(e) => setEditorName(e.target.value)}
-                className="w-full px-3 py-2 border border-stone-300 rounded-lg"
+                className="w-full px-3 py-2 bg-stone-950 border border-stone-700 rounded-lg text-white"
               />
             </div>
             <div>
-              <label className="block font-semibold text-stone-700 mb-1">Grievance Officer (IT Rules)</label>
+              <label className="block font-semibold text-stone-300 mb-1">Grievance Redressal Officer</label>
               <input
                 type="text"
                 value={grievanceOfficer}
                 onChange={(e) => setGrievanceOfficer(e.target.value)}
-                className="w-full px-3 py-2 border border-stone-300 rounded-lg"
+                className="w-full px-3 py-2 bg-stone-950 border border-stone-700 rounded-lg text-white"
               />
             </div>
             <div>
-              <label className="block font-semibold text-stone-700 mb-1">Official Editorial Email</label>
+              <label className="block font-semibold text-stone-300 mb-1">Official Desk Email</label>
               <input
                 type="email"
                 value={contactEmail}
                 onChange={(e) => setContactEmail(e.target.value)}
-                className="w-full px-3 py-2 border border-stone-300 rounded-lg"
+                className="w-full px-3 py-2 bg-stone-950 border border-stone-700 rounded-lg text-white"
               />
             </div>
             <div>
-              <label className="block font-semibold text-stone-700 mb-1">Contact Phone / Helpline</label>
+              <label className="block font-semibold text-stone-300 mb-1">Bureau Contact Phone</label>
               <input
                 type="text"
                 value={contactPhone}
                 onChange={(e) => setContactPhone(e.target.value)}
-                className="w-full px-3 py-2 border border-stone-300 rounded-lg"
+                className="w-full px-3 py-2 bg-stone-950 border border-stone-700 rounded-lg text-white"
               />
             </div>
             <div className="sm:col-span-2">
-              <label className="block font-semibold text-stone-700 mb-1">Newsroom Office Address</label>
+              <label className="block font-semibold text-stone-300 mb-1">Bureau Address</label>
               <input
                 type="text"
                 value={officeAddress}
                 onChange={(e) => setOfficeAddress(e.target.value)}
-                className="w-full px-3 py-2 border border-stone-300 rounded-lg"
+                className="w-full px-3 py-2 bg-stone-950 border border-stone-700 rounded-lg text-white"
               />
             </div>
           </div>
         </div>
 
         <div>
-          <h2 className="text-sm font-bold text-stone-900 font-serif border-b border-stone-200 pb-2 mb-3 flex items-center gap-2">
-            <Users size={16} className="text-red-600" />
-            <span>Social Media Channels</span>
+          <h2 className="text-sm font-bold text-white font-serif border-b border-stone-800 pb-2 mb-3">
+            Social & Distribution Links
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block font-semibold text-stone-700 mb-1">YouTube Channel</label>
+              <label className="block font-semibold text-stone-300 mb-1">Facebook Page URL</label>
               <input
-                type="url"
-                value={youtube}
-                onChange={(e) => setYoutube(e.target.value)}
-                className="w-full px-3 py-2 border border-stone-300 rounded-lg font-mono text-[11px]"
-              />
-            </div>
-            <div>
-              <label className="block font-semibold text-stone-700 mb-1">WhatsApp Channel</label>
-              <input
-                type="url"
-                value={whatsapp}
-                onChange={(e) => setWhatsapp(e.target.value)}
-                className="w-full px-3 py-2 border border-stone-300 rounded-lg font-mono text-[11px]"
-              />
-            </div>
-            <div>
-              <label className="block font-semibold text-stone-700 mb-1">Facebook Page</label>
-              <input
-                type="url"
+                type="text"
                 value={facebook}
                 onChange={(e) => setFacebook(e.target.value)}
-                className="w-full px-3 py-2 border border-stone-300 rounded-lg font-mono text-[11px]"
+                className="w-full px-3 py-2 bg-stone-950 border border-stone-700 rounded-lg text-white"
               />
             </div>
             <div>
-              <label className="block font-semibold text-stone-700 mb-1">Twitter / X Handle</label>
+              <label className="block font-semibold text-stone-300 mb-1">X (Twitter) Profile URL</label>
               <input
-                type="url"
+                type="text"
                 value={twitter}
                 onChange={(e) => setTwitter(e.target.value)}
-                className="w-full px-3 py-2 border border-stone-300 rounded-lg font-mono text-[11px]"
+                className="w-full px-3 py-2 bg-stone-950 border border-stone-700 rounded-lg text-white"
+              />
+            </div>
+            <div>
+              <label className="block font-semibold text-stone-300 mb-1">YouTube Channel URL</label>
+              <input
+                type="text"
+                value={youtube}
+                onChange={(e) => setYoutube(e.target.value)}
+                className="w-full px-3 py-2 bg-stone-950 border border-stone-700 rounded-lg text-white"
+              />
+            </div>
+            <div>
+              <label className="block font-semibold text-stone-300 mb-1">WhatsApp Channel Link</label>
+              <input
+                type="text"
+                value={whatsapp}
+                onChange={(e) => setWhatsapp(e.target.value)}
+                className="w-full px-3 py-2 bg-stone-950 border border-stone-700 rounded-lg text-white"
               />
             </div>
           </div>
         </div>
 
-        <div className="p-4 bg-stone-50 rounded-xl border border-stone-200 space-y-2">
-          <div className="font-bold text-stone-800 flex items-center gap-1.5">
-            <MapPin size={14} className="text-red-600" />
-            <span>Active Taxonomies</span>
-          </div>
-          <div className="text-stone-600">
-            Total Districts: <strong className="text-stone-900">{BIHAR_DISTRICTS.length}</strong> | Total Topic Categories: <strong className="text-stone-900">{TOPICS.length}</strong>
-          </div>
-        </div>
-
-        <div className="flex items-center justify-between pt-2 border-t border-stone-200">
+        <div className="pt-3 border-t border-stone-800 flex items-center justify-between">
           {savedSuccess ? (
-            <span className="text-emerald-600 font-bold flex items-center gap-1">
-              <CheckCircle2 size={16} />
-              <span>Settings updated successfully!</span>
+            <span className="text-xs font-bold text-emerald-400 flex items-center gap-1.5">
+              <CheckCircle2 size={16} /> Configuration saved!
             </span>
           ) : <span />}
 
           <button
             type="submit"
-            className="px-6 py-2.5 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg uppercase tracking-wider cursor-pointer shadow-sm flex items-center gap-2"
+            className="px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold text-xs flex items-center gap-1.5 cursor-pointer shadow-md transition-colors"
           >
             <Save size={15} />
             <span>Save Configuration</span>
