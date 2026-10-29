@@ -14,7 +14,9 @@ import {
   Video,
   Globe,
   LogOut,
-  ShieldCheck
+  ShieldCheck,
+  Sun,
+  Moon
 } from 'lucide-react';
 import { useNewsStore } from '../lib/newsStore';
 import { BIHAR_DISTRICTS, TOPICS } from '../lib/constants';
@@ -31,6 +33,9 @@ export const Header: React.FC<HeaderProps> = ({ currentPath, onNavigate, onOpenA
   const { language, setLanguage, toggleLanguage, t, getDistrictName, getTopicName } = useLanguage();
   const selectedDistrictId = store.getSelectedDistrict();
   const currentUser = store.getCurrentUser();
+  const currentTheme = store.getTheme();
+  const isDark = currentTheme === 'dark';
+
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [districtDropdownOpen, setDistrictDropdownOpen] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
@@ -76,7 +81,9 @@ export const Header: React.FC<HeaderProps> = ({ currentPath, onNavigate, onOpenA
     : '';
 
   return (
-    <header className="w-full bg-white border-b border-stone-200 sticky top-0 z-40 shadow-xs">
+    <header className={`w-full border-b sticky top-0 z-40 shadow-xs transition-colors duration-200 ${
+      isDark ? 'bg-stone-900 border-stone-800 text-stone-100' : 'bg-white border-stone-200 text-stone-900'
+    }`}>
       {/* 1. TOP UTILITY STRIP */}
       <div className="bg-stone-900 text-stone-300 text-xs py-1.5 px-4 sm:px-6">
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
@@ -86,7 +93,27 @@ export const Header: React.FC<HeaderProps> = ({ currentPath, onNavigate, onOpenA
             <span className="hidden md:inline text-stone-400">{t('todayWeather')}</span>
           </div>
 
-          <div className="flex items-center gap-3 sm:gap-4">
+          <div className="flex items-center gap-2 sm:gap-3">
+            {/* THEME TOGGLE BUTTON (LIGHT / DARK) */}
+            <button
+              type="button"
+              onClick={() => store.toggleTheme()}
+              className="flex items-center gap-1.5 px-2 py-0.5 bg-stone-800 hover:bg-stone-700 text-stone-200 text-[11px] font-semibold rounded-md border border-stone-700 transition-colors cursor-pointer"
+              title={currentTheme === 'dark' ? 'Switch to Light Theme' : 'Switch to Dark Theme'}
+            >
+              {currentTheme === 'dark' ? (
+                <>
+                  <Sun size={13} className="text-amber-400" />
+                  <span className="hidden xs:inline">Light</span>
+                </>
+              ) : (
+                <>
+                  <Moon size={13} className="text-indigo-300" />
+                  <span className="hidden xs:inline">Dark</span>
+                </>
+              )}
+            </button>
+
             {/* LANGUAGE CHANGER BUTTON (EN | हिन्दी) */}
             <div className="flex items-center bg-stone-800 rounded-md p-0.5 border border-stone-700">
               <button
@@ -189,6 +216,19 @@ export const Header: React.FC<HeaderProps> = ({ currentPath, onNavigate, onOpenA
                         )}
                       </div>
                     </div>
+
+                    {/* Theme Switcher inside Modal */}
+                    <button
+                      type="button"
+                      onClick={() => store.toggleTheme()}
+                      className="w-full flex items-center justify-between px-3 py-2 bg-stone-800 hover:bg-stone-700 text-stone-200 rounded-lg text-xs font-semibold transition-colors cursor-pointer"
+                    >
+                      <span className="flex items-center gap-2">
+                        {currentTheme === 'dark' ? <Sun size={14} className="text-amber-400" /> : <Moon size={14} className="text-indigo-300" />}
+                        <span>Toggle Theme</span>
+                      </span>
+                      <span className="text-[10px] text-stone-400 font-mono uppercase">{currentTheme} Mode</span>
+                    </button>
 
                     <button
                       type="button"

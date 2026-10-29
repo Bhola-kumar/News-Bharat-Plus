@@ -19,7 +19,9 @@ import {
   ChevronDown,
   Globe,
   Menu,
-  X
+  X,
+  Sun,
+  Moon
 } from 'lucide-react';
 import { useNewsStore } from '../../lib/newsStore';
 
@@ -48,6 +50,9 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
 }) => {
   const store = useNewsStore();
   const currentUser = store.getCurrentUser();
+  const currentTheme = store.getTheme();
+  const isDark = currentTheme === 'dark';
+
   const unreadCount = store.getSubmissions().filter(s => s.status === 'new').length;
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -111,7 +116,11 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
           e.stopPropagation();
           setUserDropdownOpen(!userDropdownOpen);
         }}
-        className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-2.5 py-1 bg-stone-800 hover:bg-stone-700 text-white text-xs font-semibold rounded-md border border-stone-700 transition-colors cursor-pointer"
+        className={`flex items-center gap-1.5 sm:gap-2 px-2 sm:px-2.5 py-1 text-xs font-semibold rounded-md border transition-colors cursor-pointer ${
+          isDark 
+            ? 'bg-stone-800 hover:bg-stone-700 text-white border-stone-700' 
+            : 'bg-stone-100 hover:bg-stone-200 text-stone-900 border-stone-300'
+        }`}
         title={userEmail}
       >
         <div className="w-5 h-5 rounded-full bg-red-600 flex items-center justify-center text-white text-[10px] font-bold shrink-0">
@@ -120,42 +129,59 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
         <span className="truncate max-w-[80px] sm:max-w-[140px] capitalize text-[11px] sm:text-xs">
           {displayName}
         </span>
-        <ChevronDown size={13} className={`text-stone-400 transition-transform ${userDropdownOpen ? 'rotate-180' : ''}`} />
+        <ChevronDown size={13} className={`${isDark ? 'text-stone-400' : 'text-stone-600'} transition-transform ${userDropdownOpen ? 'rotate-180' : ''}`} />
       </button>
 
       {/* Dropdown Modal Menu */}
       {userDropdownOpen && (
-        <div className="absolute right-0 mt-2 w-64 bg-stone-900 border border-stone-700 text-stone-200 rounded-xl shadow-2xl z-50 p-3 space-y-3 animate-in fade-in zoom-in-95 duration-150">
-          <div className="border-b border-stone-800 pb-2.5">
+        <div className={`absolute right-0 mt-2 w-64 rounded-xl shadow-2xl z-50 p-3 space-y-3 animate-in fade-in zoom-in-95 duration-150 border ${
+          isDark ? 'bg-stone-900 border-stone-700 text-stone-200' : 'bg-white border-stone-200 text-stone-800'
+        }`}>
+          <div className={`border-b pb-2.5 ${isDark ? 'border-stone-800' : 'border-stone-100'}`}>
             <div className="flex items-center gap-2.5 mb-2">
               <div className="w-8 h-8 rounded-full bg-red-600 flex items-center justify-center text-white font-bold text-sm shrink-0">
                 {displayName[0]?.toUpperCase() || 'A'}
               </div>
               <div className="overflow-hidden">
-                <p className="text-xs font-bold text-white truncate capitalize">
+                <p className={`text-xs font-bold truncate capitalize ${isDark ? 'text-white' : 'text-stone-900'}`}>
                   {displayName}
                 </p>
-                <p className="text-[11px] text-stone-400 truncate" title={userEmail}>
+                <p className={`text-[11px] truncate ${isDark ? 'text-stone-400' : 'text-stone-500'}`} title={userEmail}>
                   {userEmail}
                 </p>
               </div>
             </div>
 
             <div className="flex items-center justify-between pt-1">
-              <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-amber-400/20 text-amber-300 border border-amber-400/30">
+              <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-amber-400/20 text-amber-500 border border-amber-400/30">
                 Admin
               </span>
 
               <button
                 type="button"
                 onClick={handleViewPublic}
-                className="text-[11px] text-red-400 hover:text-red-300 font-semibold cursor-pointer flex items-center gap-1 hover:underline"
+                className="text-[11px] text-red-600 hover:text-red-500 font-semibold cursor-pointer flex items-center gap-1 hover:underline"
               >
                 <ExternalLink size={12} />
                 <span>View Website</span>
               </button>
             </div>
           </div>
+
+          {/* Theme Switcher inside Dropdown */}
+          <button
+            type="button"
+            onClick={() => store.toggleTheme()}
+            className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
+              isDark ? 'bg-stone-800 hover:bg-stone-700 text-stone-200' : 'bg-stone-100 hover:bg-stone-200 text-stone-800'
+            }`}
+          >
+            <span className="flex items-center gap-2">
+              {currentTheme === 'dark' ? <Sun size={14} className="text-amber-400" /> : <Moon size={14} className="text-indigo-500" />}
+              <span>Switch Theme</span>
+            </span>
+            <span className="text-[10px] font-mono uppercase">{currentTheme} Mode</span>
+          </button>
 
           <button
             type="button"
@@ -171,20 +197,26 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
   );
 
   return (
-    <div className="min-h-screen bg-stone-950 text-stone-100 flex flex-col md:flex-row">
+    <div className={`min-h-screen flex flex-col md:flex-row transition-colors duration-200 ${
+      isDark ? 'bg-stone-950 text-stone-100' : 'bg-stone-100 text-stone-900'
+    }`}>
       {/* Desktop Sidebar */}
-      <aside className="hidden md:flex w-64 bg-stone-900 text-stone-300 flex-col shrink-0 border-r border-stone-800">
-        <div className="p-4 border-b border-stone-800">
+      <aside className={`hidden md:flex w-64 flex-col shrink-0 border-r transition-colors duration-200 ${
+        isDark ? 'bg-stone-900 text-stone-300 border-stone-800' : 'bg-white text-stone-700 border-stone-200'
+      }`}>
+        <div className={`p-4 border-b ${isDark ? 'border-stone-800' : 'border-stone-200'}`}>
           <button
             type="button"
             onClick={() => onNavigatePublic('/')}
             className="flex items-center gap-2.5 text-left w-full hover:opacity-80 transition-opacity cursor-pointer group"
             title="Go to Public Home Page"
           >
-            <Shield className="text-red-500 shrink-0 group-hover:scale-105 transition-transform" size={24} />
+            <Shield className="text-red-600 shrink-0 group-hover:scale-105 transition-transform" size={24} />
             <div>
-              <h2 className="font-bold text-sm text-white font-serif group-hover:text-red-400 transition-colors">News Bharat Plus</h2>
-              <p className="text-[10px] text-stone-400 uppercase tracking-widest">
+              <h2 className={`font-bold text-sm font-serif group-hover:text-red-600 transition-colors ${
+                isDark ? 'text-white' : 'text-stone-900'
+              }`}>News Bharat Plus</h2>
+              <p className={`text-[10px] uppercase tracking-widest ${isDark ? 'text-stone-400' : 'text-stone-500'}`}>
                 Editorial & Admin Portal
               </p>
             </div>
@@ -202,7 +234,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
                 className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer text-left ${
                   active 
                     ? 'bg-red-600 text-white shadow-sm' 
-                    : 'text-stone-300 hover:bg-stone-800 hover:text-white'
+                    : isDark ? 'text-stone-300 hover:bg-stone-800 hover:text-white' : 'text-stone-700 hover:bg-stone-100 hover:text-stone-900'
                 }`}
               >
                 <div className="flex items-center gap-2.5">
@@ -219,11 +251,13 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
           })}
         </nav>
 
-        <div className="p-3 border-t border-stone-800">
+        <div className={`p-3 border-t ${isDark ? 'border-stone-800' : 'border-stone-200'}`}>
           <button
             type="button"
             onClick={() => onNavigatePublic('/')}
-            className="w-full flex items-center justify-center gap-1.5 py-2 px-3 bg-stone-800 hover:bg-stone-700 text-stone-200 text-xs rounded-lg transition-colors cursor-pointer font-medium"
+            className={`w-full flex items-center justify-center gap-1.5 py-2 px-3 text-xs rounded-lg transition-colors cursor-pointer font-medium ${
+              isDark ? 'bg-stone-800 hover:bg-stone-700 text-stone-200' : 'bg-stone-100 hover:bg-stone-200 text-stone-800'
+            }`}
           >
             <ExternalLink size={14} />
             <span>View Public Website</span>
@@ -234,12 +268,16 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
       {/* Main Content & Header Wrapper */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Mobile Top Header */}
-        <header className="md:hidden bg-stone-900 border-b border-stone-800 text-stone-200 px-4 py-2.5 flex items-center justify-between sticky top-0 z-40">
+        <header className={`md:hidden border-b px-4 py-2.5 flex items-center justify-between sticky top-0 z-40 ${
+          isDark ? 'bg-stone-900 border-stone-800 text-stone-200' : 'bg-white border-stone-200 text-stone-800'
+        }`}>
           <div className="flex items-center gap-2.5">
             <button
               type="button"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-1.5 bg-stone-800 hover:bg-stone-700 text-stone-200 rounded-lg transition-colors cursor-pointer"
+              className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
+                isDark ? 'bg-stone-800 hover:bg-stone-700 text-stone-200' : 'bg-stone-100 hover:bg-stone-200 text-stone-800'
+              }`}
               aria-label="Toggle Navigation Menu"
             >
               {mobileMenuOpen ? <X size={18} /> : <Menu size={18} />}
@@ -250,19 +288,34 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
               className="flex items-center gap-2 text-left hover:opacity-80 transition-opacity cursor-pointer"
               title="Go to Public Home Page"
             >
-              <Shield className="text-red-500 shrink-0" size={20} />
-              <span className="font-bold text-xs text-white font-serif">News Bharat Plus</span>
+              <Shield className="text-red-600 shrink-0" size={20} />
+              <span className={`font-bold text-xs font-serif ${isDark ? 'text-white' : 'text-stone-900'}`}>News Bharat Plus</span>
             </button>
           </div>
 
-          {renderUserDropdown()}
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => store.toggleTheme()}
+              className={`p-1.5 rounded-md border text-xs cursor-pointer ${
+                isDark ? 'bg-stone-800 border-stone-700 text-amber-400' : 'bg-stone-100 border-stone-300 text-indigo-600'
+              }`}
+              title="Toggle Theme"
+            >
+              {isDark ? <Sun size={15} /> : <Moon size={15} />}
+            </button>
+            {renderUserDropdown()}
+          </div>
         </header>
-
 
         {/* Mobile Navigation Collapsible Drawer Overlay */}
         {mobileMenuOpen && (
-          <div className="md:hidden bg-stone-950 border-b border-stone-800 p-3 space-y-1 z-30 shadow-2xl animate-in slide-in-from-top duration-200">
-            <div className="text-[10px] uppercase font-bold text-stone-500 tracking-wider px-3 pt-1 pb-1.5">
+          <div className={`md:hidden border-b p-3 space-y-1 z-30 shadow-2xl animate-in slide-in-from-top duration-200 ${
+            isDark ? 'bg-stone-950 border-stone-800' : 'bg-white border-stone-200'
+          }`}>
+            <div className={`text-[10px] uppercase font-bold tracking-wider px-3 pt-1 pb-1.5 ${
+              isDark ? 'text-stone-500' : 'text-stone-400'
+            }`}>
               Portal Menu
             </div>
             {navItems.map((item) => {
@@ -275,7 +328,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
                   className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer text-left ${
                     active 
                       ? 'bg-red-600 text-white shadow-sm' 
-                      : 'text-stone-300 hover:bg-stone-800 hover:text-white'
+                      : isDark ? 'text-stone-300 hover:bg-stone-800 hover:text-white' : 'text-stone-700 hover:bg-stone-100 hover:text-stone-900'
                   }`}
                 >
                   <div className="flex items-center gap-2.5">
@@ -290,13 +343,15 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
                 </button>
               );
             })}
-            <div className="pt-2 border-t border-stone-800 mt-2">
+            <div className={`pt-2 border-t mt-2 ${isDark ? 'border-stone-800' : 'border-stone-100'}`}>
               <button
                 onClick={() => {
                   setMobileMenuOpen(false);
                   onNavigatePublic('/');
                 }}
-                className="w-full flex items-center justify-center gap-1.5 py-2 px-3 bg-stone-800 hover:bg-stone-700 text-stone-200 text-xs rounded-lg transition-colors cursor-pointer font-medium"
+                className={`w-full flex items-center justify-center gap-1.5 py-2 px-3 text-xs rounded-lg transition-colors cursor-pointer font-medium ${
+                  isDark ? 'bg-stone-800 hover:bg-stone-700 text-stone-200' : 'bg-stone-100 hover:bg-stone-200 text-stone-800'
+                }`}
               >
                 <ExternalLink size={14} />
                 <span>View Public Website</span>
@@ -306,17 +361,45 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
         )}
 
         {/* Desktop Top Header Bar */}
-        <header className="hidden md:flex bg-stone-900 border-b border-stone-800 text-stone-200 px-4 py-2.5 items-center justify-between">
-          <div className="text-xs font-medium text-stone-400">
+        <header className={`hidden md:flex border-b px-4 py-2.5 items-center justify-between transition-colors duration-200 ${
+          isDark ? 'bg-stone-900 border-stone-800 text-stone-200' : 'bg-white border-stone-200 text-stone-800'
+        }`}>
+          <div className={`text-xs font-medium ${isDark ? 'text-stone-400' : 'text-stone-500'}`}>
             News Bharat Plus Control Panel
           </div>
 
           <div className="flex items-center gap-3">
+            {/* Theme Switcher Button */}
+            <button
+              type="button"
+              onClick={() => store.toggleTheme()}
+              className={`flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold rounded-md border transition-colors cursor-pointer ${
+                isDark 
+                  ? 'bg-stone-800 hover:bg-stone-700 text-stone-200 border-stone-700' 
+                  : 'bg-stone-100 hover:bg-stone-200 text-stone-800 border-stone-300'
+              }`}
+              title={isDark ? 'Switch to Light Theme' : 'Switch to Dark Theme'}
+            >
+              {isDark ? (
+                <>
+                  <Sun size={13} className="text-amber-400" />
+                  <span>Light Mode</span>
+                </>
+              ) : (
+                <>
+                  <Moon size={13} className="text-indigo-600" />
+                  <span>Dark Mode</span>
+                </>
+              )}
+            </button>
+
             <button
               onClick={() => onNavigatePublic('/')}
-              className="text-stone-300 hover:text-white text-xs font-medium flex items-center gap-1 cursor-pointer"
+              className={`text-xs font-medium flex items-center gap-1 cursor-pointer hover:underline ${
+                isDark ? 'text-stone-300 hover:text-white' : 'text-stone-600 hover:text-stone-900'
+              }`}
             >
-              <Globe size={13} className="text-stone-400" />
+              <Globe size={13} className={isDark ? 'text-stone-400' : 'text-stone-500'} />
               <span>Public Website</span>
             </button>
 

@@ -200,18 +200,4 @@ export const INITIAL_MEDIA: MediaAsset[] = [
   }
 ];
 
-export const INITIAL_SUBMISSIONS: ReaderSubmission[] = [
-  {
-    id: 'sub-1',
-    type: 'suggestion',
-    userName: 'Bholakumar',
-    userEmail: 'bholak993@gmail.com',
-    userPhone: '+91 98352 14780',
-    subject: 'Request for detailed reporting on Gaya bypass traffic updates',
-    message: 'Please cover the newly opened bypass section in Gaya near Bodhgaya road as traffic signals are currently under installation.',
-    targetDistrict: 'gaya',
-    status: 'new',
-    submittedAt: new Date(Date.now() - 3600000 * 4).toISOString(),
-    isConsumerLoggedIn: true
-  }
-];
+export const INITIAL_SUBMISSIONS: ReaderSubmission[] = [];

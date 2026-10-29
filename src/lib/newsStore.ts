@@ -29,7 +29,8 @@ const STORAGE_KEYS = {
   AUTH_USER: 'bnp_auth_user_v3',
   SESSIONS: 'bnp_sessions_v3',
   TOOL_METRICS: 'bnp_tool_metrics_v3',
-  DB_SYNC_TIME: 'bnp_db_sync_timestamp_v3'
+  DB_SYNC_TIME: 'bnp_db_sync_timestamp_v3',
+  THEME: 'bnp_theme_v1'
 };
 
 export interface AuthUser {
@@ -184,12 +185,36 @@ class NewsStore {
     totalPageViews: 1480,
     lastActivityAt: new Date().toISOString()
   };
+  private theme: 'dark' | 'light' = 'dark';
   private lastSyncedAt: string = new Date().toISOString();
   private listeners: Set<() => void> = new Set();
 
   constructor() {
     this.init();
     this.setupCrossTabSync();
+  }
+
+  public getTheme(): 'dark' | 'light' {
+    return this.theme;
+  }
+
+  public setTheme(theme: 'dark' | 'light') {
+    this.theme = theme;
+    try {
+      localStorage.setItem(STORAGE_KEYS.THEME, theme);
+    } catch {}
+    if (typeof document !== 'undefined') {
+      if (theme === 'dark') {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+    }
+    this.notify();
+  }
+
+  public toggleTheme() {
+    this.setTheme(this.theme === 'dark' ? 'light' : 'dark');
   }
 
   private setupCrossTabSync() {
@@ -221,6 +246,19 @@ class NewsStore {
             this.currentUser = JSON.parse(event.newValue);
             this.notify();
           } catch {}
+        } else if (event.key === STORAGE_KEYS.THEME && event.newValue) {
+          const newTheme = event.newValue as 'dark' | 'light';
+          if (newTheme === 'dark' || newTheme === 'light') {
+            this.theme = newTheme;
+            if (typeof document !== 'undefined') {
+              if (newTheme === 'dark') {
+                document.documentElement.classList.add('dark');
+              } else {
+                document.documentElement.classList.remove('dark');
+              }
+            }
+            this.notify();
+          }
         }
       });
     }
@@ -324,15 +362,42 @@ class NewsStore {
       } catch {}
     }
 
-    // 9. Sessions
+    // 9. Theme
+    const savedTheme = localStorage.getItem(STORAGE_KEYS.THEME) as 'dark' | 'light';
+    if (savedTheme === 'dark' || savedTheme === 'light') {
+      this.theme = savedTheme;
+    } else {
+      this.theme = 'dark';
+    }
+    if (typeof document !== 'undefined') {
+      if (this.theme === 'dark') {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+    }
+
+    // 10. Sessions - filter out rubbish mock sessions
     const savedSessions = localStorage.getItem(STORAGE_KEYS.SESSIONS);
     if (savedSessions) {
       try {
-        this.sessions = JSON.parse(savedSessions);
+        const rawSessions: UserSession[] = JSON.parse(savedSessions);
+        this.sessions = rawSessions.filter(s => {
+          if (!s || !s.name) return false;
+          const nameLower = s.name.toLowerCase();
+          const emailLower = (s.email || '').toLowerCase();
+          if (nameLower.includes('bhola') || emailLower.includes('bhola')) return false;
+          if (nameLower.includes('amit verma') || emailLower.includes('amit.verma')) return false;
+          if (nameLower.includes('priya sharma') || emailLower.includes('priya.gaya')) return false;
+          if (nameLower.includes('guest reader #')) return false;
+          return true;
+        });
       } catch {}
     }
     if (this.sessions.length === 0) {
       this.initDefaultSessions();
+    } else {
+      this.saveSessions();
     }
 
     this.lastSyncedAt = new Date().toISOString();

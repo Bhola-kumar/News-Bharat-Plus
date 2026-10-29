@@ -412,8 +412,13 @@ export default function App() {
     );
   }
 
+  const currentTheme = store.getTheme();
+  const isDark = currentTheme === 'dark';
+
   return (
-    <div className="min-h-screen flex flex-col bg-stone-50 font-sans text-stone-900">
+    <div className={`min-h-screen flex flex-col font-sans transition-colors duration-200 ${
+      isDark ? 'bg-stone-950 text-stone-100 dark' : 'bg-stone-50 text-stone-900'
+    }`}>
       {/* 1. Header with Logo, District Dropdown & Search (Strictly consumer, with Language Changer) */}
       <Header
         currentPath={currentPath}
