@@ -913,7 +913,7 @@ class NewsStore {
   }
 
   public recordToolUsage(
-    tool: 'story_card_download' | 'share_whatsapp' | 'share_facebook' | 'share_copy' | 'search',
+    tool: 'story_card_download' | 'share_whatsapp' | 'share_facebook' | 'share_copy' | 'share_twitter' | 'share_linkedin' | 'share_telegram' | 'search',
     detail?: string
   ) {
     const now = new Date().toISOString();
@@ -927,7 +927,7 @@ class NewsStore {
     } else if (tool === 'share_facebook') {
       this.toolMetrics.articleShares.facebook += 1;
       this.toolMetrics.articleShares.total += 1;
-    } else if (tool === 'share_copy') {
+    } else if (tool === 'share_copy' || tool === 'share_twitter' || tool === 'share_linkedin' || tool === 'share_telegram') {
       this.toolMetrics.articleShares.copyLink += 1;
       this.toolMetrics.articleShares.total += 1;
     } else if (tool === 'search' && detail) {

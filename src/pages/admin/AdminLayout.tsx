@@ -92,11 +92,25 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
     setMobileMenuOpen(false);
   };
 
-  const UserDropdown = () => (
+  const handleSignOut = () => {
+    setUserDropdownOpen(false);
+    store.logout();
+    onNavigatePublic('/');
+  };
+
+  const handleViewPublic = () => {
+    setUserDropdownOpen(false);
+    onNavigatePublic('/');
+  };
+
+  const renderUserDropdown = () => (
     <div className="relative" ref={userDropdownRef}>
       <button
         type="button"
-        onClick={() => setUserDropdownOpen(!userDropdownOpen)}
+        onClick={(e) => {
+          e.stopPropagation();
+          setUserDropdownOpen(!userDropdownOpen);
+        }}
         className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-2.5 py-1 bg-stone-800 hover:bg-stone-700 text-white text-xs font-semibold rounded-md border border-stone-700 transition-colors cursor-pointer"
         title={userEmail}
       >
@@ -133,10 +147,8 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
               </span>
 
               <button
-                onClick={() => {
-                  setUserDropdownOpen(false);
-                  onNavigatePublic('/');
-                }}
+                type="button"
+                onClick={handleViewPublic}
                 className="text-[11px] text-red-400 hover:text-red-300 font-semibold cursor-pointer flex items-center gap-1 hover:underline"
               >
                 <ExternalLink size={12} />
@@ -147,10 +159,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
 
           <button
             type="button"
-            onClick={() => {
-              setUserDropdownOpen(false);
-              store.logout();
-            }}
+            onClick={handleSignOut}
             className="w-full flex items-center justify-center gap-2 py-2 px-3 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs font-bold transition-colors cursor-pointer"
           >
             <LogOut size={14} />
@@ -166,15 +175,20 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
       {/* Desktop Sidebar */}
       <aside className="hidden md:flex w-64 bg-stone-900 text-stone-300 flex-col shrink-0 border-r border-stone-800">
         <div className="p-4 border-b border-stone-800">
-          <div className="flex items-center gap-2.5">
-            <Shield className="text-red-500 shrink-0" size={24} />
+          <button
+            type="button"
+            onClick={() => onNavigatePublic('/')}
+            className="flex items-center gap-2.5 text-left w-full hover:opacity-80 transition-opacity cursor-pointer group"
+            title="Go to Public Home Page"
+          >
+            <Shield className="text-red-500 shrink-0 group-hover:scale-105 transition-transform" size={24} />
             <div>
-              <h2 className="font-bold text-sm text-white font-serif">News Bharat Plus</h2>
+              <h2 className="font-bold text-sm text-white font-serif group-hover:text-red-400 transition-colors">News Bharat Plus</h2>
               <p className="text-[10px] text-stone-400 uppercase tracking-widest">
                 Editorial & Admin Portal
               </p>
             </div>
-          </div>
+          </button>
         </div>
 
         <nav className="p-3 space-y-1 flex-1">
@@ -207,6 +221,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
 
         <div className="p-3 border-t border-stone-800">
           <button
+            type="button"
             onClick={() => onNavigatePublic('/')}
             className="w-full flex items-center justify-center gap-1.5 py-2 px-3 bg-stone-800 hover:bg-stone-700 text-stone-200 text-xs rounded-lg transition-colors cursor-pointer font-medium"
           >
@@ -229,14 +244,20 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
             >
               {mobileMenuOpen ? <X size={18} /> : <Menu size={18} />}
             </button>
-            <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => onNavigatePublic('/')}
+              className="flex items-center gap-2 text-left hover:opacity-80 transition-opacity cursor-pointer"
+              title="Go to Public Home Page"
+            >
               <Shield className="text-red-500 shrink-0" size={20} />
               <span className="font-bold text-xs text-white font-serif">News Bharat Plus</span>
-            </div>
+            </button>
           </div>
 
-          <UserDropdown />
+          {renderUserDropdown()}
         </header>
+
 
         {/* Mobile Navigation Collapsible Drawer Overlay */}
         {mobileMenuOpen && (
@@ -299,7 +320,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
               <span>Public Website</span>
             </button>
 
-            <UserDropdown />
+            {renderUserDropdown()}
           </div>
         </header>
 

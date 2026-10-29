@@ -14,6 +14,7 @@ import { Shield, AlertTriangle, ArrowRight, CheckCircle2, Lock } from 'lucide-re
 import { Header } from './components/Header';
 import { Footer } from './components/Footer';
 import { BreakingTicker } from './components/BreakingTicker';
+import { BottomMarqueeTicker } from './components/BottomMarqueeTicker';
 import { AuthModal } from './components/AuthModal';
 
 // Public Pages
@@ -444,6 +445,10 @@ export default function App() {
           }
         }}
       />
+
+      {/* 5. Sticky Continuous Bottom Moving News Ticker */}
+      <BottomMarqueeTicker onSelectArticle={handleSelectArticle} />
     </div>
   );
 }
+
