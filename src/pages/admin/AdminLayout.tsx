@@ -91,44 +91,14 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
   return (
     <div className="min-h-screen bg-stone-100 flex flex-col md:flex-row">
       <aside className="w-full md:w-64 bg-stone-900 text-stone-300 flex flex-col shrink-0 border-r border-stone-800">
-        <div className="p-4 border-b border-stone-800 space-y-3">
-          <div className="flex items-center gap-2">
-            <Shield className="text-red-500" size={24} />
+        <div className="p-4 border-b border-stone-800">
+          <div className="flex items-center gap-2.5">
+            <Shield className="text-red-500 shrink-0" size={24} />
             <div>
               <h2 className="font-bold text-sm text-white font-serif">News Bharat Plus</h2>
               <p className="text-[10px] text-stone-400 uppercase tracking-widest">
                 Editorial & Admin Portal
               </p>
-            </div>
-          </div>
-
-          {/* User Card Sidebar Panel */}
-          <div className="p-2.5 bg-stone-800/90 rounded-xl border border-stone-700 text-xs space-y-2">
-            <div className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-full bg-red-600 flex items-center justify-center text-white font-bold text-xs shrink-0">
-                {displayName[0]?.toUpperCase() || 'A'}
-              </div>
-              <div className="overflow-hidden">
-                <div className="text-xs font-bold text-white truncate capitalize">
-                  {displayName}
-                </div>
-                <div className="text-[10px] text-stone-400 truncate" title={userEmail}>
-                  {userEmail}
-                </div>
-              </div>
-            </div>
-            
-            <div className="flex items-center justify-between pt-1">
-              <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-amber-400/20 text-amber-300 border border-amber-400/30">
-                Admin
-              </span>
-              <button
-                onClick={() => store.logout()}
-                className="px-2 py-1 bg-red-600 hover:bg-red-700 text-white text-[11px] font-bold rounded transition-colors flex items-center gap-1 cursor-pointer"
-              >
-                <LogOut size={11} />
-                <span>Sign Out</span>
-              </button>
             </div>
           </div>
         </div>

@@ -146,7 +146,7 @@ export default function App() {
         setPromptAdminEmail(false);
       } else {
         setAdminAuthError(
-          `Access Denied: "${cleanEmail}" is not authorized. Configured admin emails: ${getAuthorizedAdminEmails().join(', ')}`
+          `Access Denied: "${cleanEmail}" is not authorized. Only designated editorial staff accounts have portal access.`
         );
       }
     }, 400);
@@ -197,11 +197,11 @@ export default function App() {
                     autoFocus
                     value={adminGoogleEmail}
                     onChange={(e) => setAdminGoogleEmail(e.target.value)}
-                    placeholder="thisisrajukumar14@gmail.com"
+                    placeholder="editor@newsbharatplus.in"
                     className="w-full px-3 py-2 text-xs border border-stone-700 rounded-lg bg-stone-950 text-white focus:ring-2 focus:ring-red-500 focus:outline-hidden"
                   />
                   <p className="text-[10px] text-stone-400 mt-1">
-                    Authorized in environment: <span className="font-mono text-red-400">{getAuthorizedAdminEmails().join(', ')}</span>
+                    Please enter your registered staff email address.
                   </p>
                 </div>
 
@@ -265,7 +265,7 @@ export default function App() {
                 </button>
 
                 <p className="text-[11px] text-stone-400 leading-relaxed pt-1">
-                  Only accounts listed in <code className="text-red-400 bg-stone-900 px-1 py-0.5 rounded font-mono">VITE_ADMIN_EMAILS</code> are granted access.
+                  Only authorized editorial staff accounts are granted access.
                 </p>
               </div>
             )}
