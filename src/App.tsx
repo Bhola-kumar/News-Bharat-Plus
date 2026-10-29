@@ -92,17 +92,7 @@ export default function App() {
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
-  // Keyboard shortcut to test Admin Portal quickly: Alt + A
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.altKey && e.key.toLowerCase() === 'a') || (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'a')) {
-        e.preventDefault();
-        setCurrentPath(prev => (prev.startsWith('/admin') ? '/' : '/admin'));
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
+
 
   const navigateTo = (path: string) => {
     setCurrentPath(path);

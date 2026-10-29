@@ -224,7 +224,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             <Lock size={12} className="text-stone-400" />
             <span>Google SSO</span>
           </span>
-          <span className="text-stone-400">Bihar News Plus</span>
+          <span className="text-stone-400">News Bharat Plus</span>
         </div>
       </div>
     </div>

@@ -55,7 +55,7 @@ export const AdminUsersAnalytics: React.FC = () => {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `bihar-news-plus-db-backup-${new Date().toISOString().slice(0, 10)}.json`;
+    a.download = `news-bharat-plus-db-backup-${new Date().toISOString().slice(0, 10)}.json`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -470,7 +470,7 @@ export const AdminUsersAnalytics: React.FC = () => {
               Top Search Queries by Readers
             </h3>
             <p className="text-xs text-stone-400">
-              Keywords and topics readers are actively searching for on Bihar News Plus
+              Keywords and topics readers are actively searching for on News Bharat Plus
             </p>
 
             <div className="space-y-2 pt-1">
@@ -551,7 +551,7 @@ export const AdminUsersAnalytics: React.FC = () => {
                 Database Synchronization & Integrity
               </h3>
               <p className="text-xs text-stone-400 mt-1 leading-relaxed">
-                Bihar News Plus uses a high-resilience persistent local database with real-time cross-tab synchronization and Supabase cloud sync integration.
+                News Bharat Plus uses a high-resilience persistent local database with real-time cross-tab synchronization and Supabase cloud sync integration.
               </p>
             </div>
 

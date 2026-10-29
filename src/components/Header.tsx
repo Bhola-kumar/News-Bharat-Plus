@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   Search, 
   MapPin, 
@@ -12,7 +12,9 @@ import {
   X, 
   ChevronDown,
   Video,
-  Globe
+  Globe,
+  LogOut,
+  ShieldCheck
 } from 'lucide-react';
 import { useNewsStore } from '../lib/newsStore';
 import { BIHAR_DISTRICTS, TOPICS } from '../lib/constants';
@@ -31,9 +33,21 @@ export const Header: React.FC<HeaderProps> = ({ currentPath, onNavigate, onOpenA
   const currentUser = store.getCurrentUser();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [districtDropdownOpen, setDistrictDropdownOpen] = useState(false);
+  const [userDropdownOpen, setUserDropdownOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const userDropdownRef = useRef<HTMLDivElement>(null);
 
   const selectedDistrict = BIHAR_DISTRICTS.find(d => d.id === selectedDistrictId) || BIHAR_DISTRICTS[0];
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (userDropdownRef.current && !userDropdownRef.current.contains(event.target as Node)) {
+        setUserDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const todayStr = new Date().toLocaleDateString(language === 'hi' ? 'hi-IN' : 'en-US', {
     timeZone: 'Asia/Kolkata',
@@ -50,6 +64,16 @@ export const Header: React.FC<HeaderProps> = ({ currentPath, onNavigate, onOpenA
       setMobileMenuOpen(false);
     }
   };
+
+  const displayName = currentUser
+    ? (currentUser.name && currentUser.name !== 'Verified Reader' 
+        ? currentUser.name 
+        : currentUser.email.split('@')[0])
+    : '';
+
+  const roleLabel = currentUser
+    ? (currentUser.role === 'admin' ? 'Admin' : 'Reader')
+    : '';
 
   return (
     <header className="w-full bg-white border-b border-stone-200 sticky top-0 z-40 shadow-xs">
@@ -110,24 +134,75 @@ export const Header: React.FC<HeaderProps> = ({ currentPath, onNavigate, onOpenA
               {t('submitSuggestion')}
             </button>
 
-            {/* User Card on Right: only email, role, and signout */}
+            {/* User Card Trigger & Dropdown Menu */}
             {currentUser ? (
-              <div className="flex items-center gap-2 pl-2 border-l border-stone-700 bg-stone-800/80 px-2.5 py-1 rounded-md border border-stone-700">
-                <div className="text-left leading-tight">
-                  <div className="text-[11px] font-medium text-white truncate max-w-[150px] sm:max-w-[210px]" title={currentUser.email}>
-                    {currentUser.email}
-                  </div>
-                  <div className="text-[10px] text-amber-400 font-semibold tracking-wide capitalize">
-                    Role: {currentUser.role}
-                  </div>
-                </div>
-                <button 
-                  onClick={() => store.logout()} 
-                  className="ml-1.5 px-2 py-0.5 bg-red-600 hover:bg-red-700 text-white rounded text-[11px] font-bold transition-colors cursor-pointer shrink-0"
-                  title="Sign out"
+              <div className="relative" ref={userDropdownRef}>
+                <button
+                  type="button"
+                  onClick={() => setUserDropdownOpen(!userDropdownOpen)}
+                  className="flex items-center gap-2 px-2.5 py-1 bg-stone-800 hover:bg-stone-700 text-white text-xs font-semibold rounded-md border border-stone-700 transition-colors cursor-pointer"
+                  title={currentUser.email}
                 >
-                  Sign Out
+                  <div className="w-5 h-5 rounded-full bg-red-600 flex items-center justify-center text-white text-[10px] font-bold shrink-0">
+                    {displayName[0]?.toUpperCase() || 'U'}
+                  </div>
+                  <span className="truncate max-w-[110px] sm:max-w-[150px] capitalize">
+                    {displayName}
+                  </span>
+                  <ChevronDown size={13} className={`text-stone-400 transition-transform ${userDropdownOpen ? 'rotate-180' : ''}`} />
                 </button>
+
+                {/* Dropdown Modal Menu */}
+                {userDropdownOpen && (
+                  <div className="absolute right-0 mt-2 w-64 bg-stone-900 border border-stone-700 text-stone-200 rounded-xl shadow-2xl z-50 p-3 space-y-3 animate-in fade-in zoom-in-95 duration-150">
+                    <div className="border-b border-stone-800 pb-2.5">
+                      <div className="flex items-center gap-2.5 mb-2">
+                        <div className="w-8 h-8 rounded-full bg-red-600 flex items-center justify-center text-white font-bold text-sm shrink-0">
+                          {displayName[0]?.toUpperCase() || 'U'}
+                        </div>
+                        <div className="overflow-hidden">
+                          <p className="text-xs font-bold text-white truncate capitalize">
+                            {displayName}
+                          </p>
+                          <p className="text-[11px] text-stone-400 truncate" title={currentUser.email}>
+                            {currentUser.email}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between pt-1">
+                        <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-amber-400/20 text-amber-300 border border-amber-400/30">
+                          {roleLabel}
+                        </span>
+
+                        {currentUser.role === 'admin' && (
+                          <button
+                            onClick={() => {
+                              setUserDropdownOpen(false);
+                              onNavigate('/admin');
+                            }}
+                            className="text-[11px] text-red-400 hover:text-red-300 font-semibold cursor-pointer flex items-center gap-1 hover:underline"
+                          >
+                            <ShieldCheck size={12} />
+                            <span>Admin Portal</span>
+                          </button>
+                        )}
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setUserDropdownOpen(false);
+                        store.logout();
+                      }}
+                      className="w-full flex items-center justify-center gap-2 py-2 px-3 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs font-bold transition-colors cursor-pointer"
+                    >
+                      <LogOut size={14} />
+                      <span>Sign Out</span>
+                    </button>
+                  </div>
+                )}
               </div>
             ) : (
               <button 
@@ -343,23 +418,44 @@ export const Header: React.FC<HeaderProps> = ({ currentPath, onNavigate, onOpenA
             </div>
           </div>
 
-          {/* Mobile User Card: only email, role, and signout */}
+          {/* Mobile User Card */}
           {currentUser ? (
-            <div className="bg-stone-900 border border-stone-800 p-2.5 rounded-lg flex items-center justify-between text-xs">
-              <div className="truncate">
-                <div className="text-white font-medium truncate max-w-[200px]" title={currentUser.email}>
-                  {currentUser.email}
+            <div className="bg-stone-900 border border-stone-800 p-3 rounded-xl space-y-2.5 text-xs text-stone-200">
+              <div className="flex items-center justify-between gap-2 border-b border-stone-800 pb-2">
+                <div className="flex items-center gap-2 overflow-hidden">
+                  <div className="w-7 h-7 rounded-full bg-red-600 flex items-center justify-center text-white font-bold text-xs shrink-0">
+                    {displayName[0]?.toUpperCase() || 'U'}
+                  </div>
+                  <div className="truncate">
+                    <p className="text-xs font-bold text-white truncate capitalize">
+                      {displayName}
+                    </p>
+                    <p className="text-[11px] text-stone-400 truncate" title={currentUser.email}>
+                      {currentUser.email}
+                    </p>
+                  </div>
                 </div>
-                <div className="text-amber-400 text-[10px] font-semibold capitalize">
-                  Role: {currentUser.role}
-                </div>
+                <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-amber-400/20 text-amber-300 border border-amber-400/30 shrink-0">
+                  {roleLabel}
+                </span>
               </div>
-              <button
-                onClick={() => { store.logout(); setMobileMenuOpen(false); }}
-                className="px-2.5 py-1 bg-red-600 hover:bg-red-700 text-white rounded text-[11px] font-bold cursor-pointer shrink-0 ml-2"
-              >
-                Sign Out
-              </button>
+              <div className="flex gap-2">
+                {currentUser.role === 'admin' && (
+                  <button
+                    onClick={() => { setMobileMenuOpen(false); onNavigate('/admin'); }}
+                    className="flex-1 py-1.5 bg-stone-800 hover:bg-stone-700 text-red-400 rounded-lg text-xs font-bold text-center cursor-pointer border border-stone-700"
+                  >
+                    Admin Portal
+                  </button>
+                )}
+                <button
+                  onClick={() => { store.logout(); setMobileMenuOpen(false); }}
+                  className="flex-1 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer"
+                >
+                  <LogOut size={12} />
+                  <span>Sign Out</span>
+                </button>
+              </div>
             </div>
           ) : (
             <button

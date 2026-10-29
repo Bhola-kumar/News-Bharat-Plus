@@ -51,7 +51,7 @@ export const translations = {
     loadMore: 'Load More News',
     noMoreNews: 'All recent articles loaded',
     noArticlesTitle: 'No News Published Yet',
-    noArticlesSub: 'The newsroom is ready. Editors can publish articles through the Admin Portal (/admin).',
+    noArticlesSub: 'Stay tuned for live news updates, district developments, and breaking headlines from News Bharat Plus.',
     noDistrictNews: 'No recent updates published for this district yet.',
     noCategoryNews: 'No articles currently in this category.',
 
@@ -184,7 +184,7 @@ export const translations = {
     loadMore: 'और समाचार देखें',
     noMoreNews: 'सभी ताज़ा समाचार लोड हो चुके हैं',
     noArticlesTitle: 'अभी कोई समाचार प्रकाशित नहीं हुआ',
-    noArticlesSub: 'न्यूज़रूम तैयार है। संपादक एडमिन पैनल (/admin) से समाचार प्रकाशित कर सकते हैं।',
+    noArticlesSub: 'न्यूज़ भारत प्लस पर ताज़ा समाचार, जिला अपडेट और लाइव ग्राउंड कवरेज के लिए बने रहें।',
     noDistrictNews: 'इस जिले के लिए अभी कोई नया समाचार प्रकाशित नहीं हुआ है।',
     noCategoryNews: 'इस श्रेणी में अभी कोई समाचार उपलब्ध नहीं है।',
 

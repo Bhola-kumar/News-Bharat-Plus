@@ -96,19 +96,9 @@ export const HomePage: React.FC<HomePageProps> = ({ onSelectArticle, onNavigate 
           <h2 className="text-2xl font-bold text-stone-900 font-serif">
             {t('noArticlesTitle')}
           </h2>
-          <p className="text-sm text-stone-600 leading-relaxed">
+          <p className="text-sm text-stone-600 leading-relaxed max-w-lg mx-auto">
             {t('noArticlesSub')}
           </p>
-          <div className="pt-2 p-4 bg-stone-50 rounded-xl text-xs text-stone-600 border border-stone-200 text-left sm:text-center">
-            <p className="font-semibold text-stone-800 mb-1">
-              {language === 'hi' ? 'एडमिन पैनल परीक्षण निर्देश:' : 'Admin Testing Instructions:'}
-            </p>
-            <p>
-              {language === 'hi' 
-                ? 'एडमिन पैनल टेस्ट करने के लिए ब्राउज़र के URL में /admin लिखें (या ?admin=true जोड़ें), अथवा Alt+A दबाएं।'
-                : 'To test the admin panel, navigate to /admin in the URL (or append ?admin=true), or press Alt+A.'}
-            </p>
-          </div>
         </div>
       </div>
     );

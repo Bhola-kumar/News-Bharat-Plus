@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   LayoutDashboard, 
   FilePlus, 
@@ -16,7 +16,10 @@ import {
   LogOut,
   Shield,
   UserCheck,
-  Activity
+  Activity,
+  ChevronDown,
+  User,
+  Globe
 } from 'lucide-react';
 import { useNewsStore } from '../../lib/newsStore';
 import { useLanguage } from '../../lib/i18n';
@@ -48,6 +51,18 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
   const { language, setLanguage } = useLanguage();
   const currentUser = store.getCurrentUser();
   const unreadCount = store.getSubmissions().filter(s => s.status === 'new').length;
+  const [userDropdownOpen, setUserDropdownOpen] = useState(false);
+  const userDropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (userDropdownRef.current && !userDropdownRef.current.contains(event.target as Node)) {
+        setUserDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const navItems: {
     id: AdminTab;
@@ -65,6 +80,14 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
     { id: 'settings', label: 'Portal Settings', icon: Settings },
   ];
 
+  const displayName = currentUser
+    ? (currentUser.name && currentUser.name !== 'Verified Reader'
+        ? currentUser.name
+        : (currentUser.email ? currentUser.email.split('@')[0] : 'Admin'))
+    : 'Admin';
+
+  const userEmail = currentUser?.email || 'admin@newsbharatplus.in';
+
   return (
     <div className="min-h-screen bg-stone-100 flex flex-col md:flex-row">
       <aside className="w-full md:w-64 bg-stone-900 text-stone-300 flex flex-col shrink-0 border-r border-stone-800">
@@ -79,23 +102,34 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
             </div>
           </div>
 
-          {/* User Card: only email, role, and signout */}
-          <div className="p-2.5 bg-stone-800/90 rounded-lg border border-stone-700 text-xs space-y-2">
-            <div className="truncate">
-              <div className="text-[11px] font-medium text-white truncate" title={currentUser?.email || 'admin@newsbharatplus.in'}>
-                {currentUser?.email || 'admin@newsbharatplus.in'}
+          {/* User Card Sidebar Panel */}
+          <div className="p-2.5 bg-stone-800/90 rounded-xl border border-stone-700 text-xs space-y-2">
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-full bg-red-600 flex items-center justify-center text-white font-bold text-xs shrink-0">
+                {displayName[0]?.toUpperCase() || 'A'}
               </div>
-              <div className="text-[10px] text-amber-400 font-semibold uppercase tracking-wider mt-0.5">
-                Role: {currentUser?.role || 'admin'}
+              <div className="overflow-hidden">
+                <div className="text-xs font-bold text-white truncate capitalize">
+                  {displayName}
+                </div>
+                <div className="text-[10px] text-stone-400 truncate" title={userEmail}>
+                  {userEmail}
+                </div>
               </div>
             </div>
-            <button
-              onClick={() => store.logout()}
-              className="w-full py-1.5 px-2 bg-red-600 hover:bg-red-700 text-white text-[11px] font-bold rounded transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
-            >
-              <LogOut size={12} />
-              <span>Sign Out</span>
-            </button>
+            
+            <div className="flex items-center justify-between pt-1">
+              <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-amber-400/20 text-amber-300 border border-amber-400/30">
+                Admin
+              </span>
+              <button
+                onClick={() => store.logout()}
+                className="px-2 py-1 bg-red-600 hover:bg-red-700 text-white text-[11px] font-bold rounded transition-colors flex items-center gap-1 cursor-pointer"
+              >
+                <LogOut size={11} />
+                <span>Sign Out</span>
+              </button>
+            </div>
           </div>
         </div>
 
@@ -138,9 +172,96 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
         </div>
       </aside>
 
-      <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto">
-        {children}
-      </main>
+      <div className="flex-1 flex flex-col min-w-0">
+        {/* Top Header Bar for Admin */}
+        <header className="bg-stone-900 border-b border-stone-800 text-stone-200 px-4 py-2.5 flex items-center justify-between">
+          <div className="text-xs font-medium text-stone-400">
+            News Bharat Plus Control Panel
+          </div>
+
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => onNavigatePublic('/')}
+              className="text-stone-300 hover:text-white text-xs font-medium flex items-center gap-1 cursor-pointer hidden sm:flex"
+            >
+              <Globe size={13} className="text-stone-400" />
+              <span>Public Website</span>
+            </button>
+
+            {/* Top Right User Card Dropdown */}
+            <div className="relative" ref={userDropdownRef}>
+              <button
+                type="button"
+                onClick={() => setUserDropdownOpen(!userDropdownOpen)}
+                className="flex items-center gap-2 px-2.5 py-1 bg-stone-800 hover:bg-stone-700 text-white text-xs font-semibold rounded-md border border-stone-700 transition-colors cursor-pointer"
+                title={userEmail}
+              >
+                <div className="w-5 h-5 rounded-full bg-red-600 flex items-center justify-center text-white text-[10px] font-bold shrink-0">
+                  {displayName[0]?.toUpperCase() || 'A'}
+                </div>
+                <span className="truncate max-w-[120px] sm:max-w-[160px] capitalize">
+                  {displayName}
+                </span>
+                <ChevronDown size={13} className={`text-stone-400 transition-transform ${userDropdownOpen ? 'rotate-180' : ''}`} />
+              </button>
+
+              {/* Dropdown Modal Menu */}
+              {userDropdownOpen && (
+                <div className="absolute right-0 mt-2 w-64 bg-stone-900 border border-stone-700 text-stone-200 rounded-xl shadow-2xl z-50 p-3 space-y-3 animate-in fade-in zoom-in-95 duration-150">
+                  <div className="border-b border-stone-800 pb-2.5">
+                    <div className="flex items-center gap-2.5 mb-2">
+                      <div className="w-8 h-8 rounded-full bg-red-600 flex items-center justify-center text-white font-bold text-sm shrink-0">
+                        {displayName[0]?.toUpperCase() || 'A'}
+                      </div>
+                      <div className="overflow-hidden">
+                        <p className="text-xs font-bold text-white truncate capitalize">
+                          {displayName}
+                        </p>
+                        <p className="text-[11px] text-stone-400 truncate" title={userEmail}>
+                          {userEmail}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between pt-1">
+                      <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-amber-400/20 text-amber-300 border border-amber-400/30">
+                        Admin
+                      </span>
+
+                      <button
+                        onClick={() => {
+                          setUserDropdownOpen(false);
+                          onNavigatePublic('/');
+                        }}
+                        className="text-[11px] text-red-400 hover:text-red-300 font-semibold cursor-pointer flex items-center gap-1 hover:underline"
+                      >
+                        <ExternalLink size={12} />
+                        <span>View Website</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setUserDropdownOpen(false);
+                      store.logout();
+                    }}
+                    className="w-full flex items-center justify-center gap-2 py-2 px-3 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs font-bold transition-colors cursor-pointer"
+                  >
+                    <LogOut size={14} />
+                    <span>Sign Out</span>
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </header>
+
+        <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto">
+          {children}
+        </main>
+      </div>
     </div>
   );
 };

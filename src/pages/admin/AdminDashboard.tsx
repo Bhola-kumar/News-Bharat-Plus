@@ -62,7 +62,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onSelectTab, onE
             Editorial Dashboard
           </h1>
           <p className="text-xs text-stone-500 mt-0.5">
-            Real-time newsroom command center for Bihar News Plus · Indian Standard Time (IST)
+            Real-time newsroom command center for News Bharat Plus · Indian Standard Time (IST)
           </p>
         </div>
 
