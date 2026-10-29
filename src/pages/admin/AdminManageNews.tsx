@@ -9,16 +9,12 @@ import {
   Edit3, 
   Trash2, 
   RotateCcw, 
-  Eye, 
-  Filter, 
-  CheckCircle, 
-  Clock, 
-  Archive, 
   Flame,
-  Plus
+  Plus,
+  AlertTriangle,
+  RefreshCw
 } from 'lucide-react';
 import { useNewsStore } from '../../lib/newsStore';
-import { ArticleStatus } from '../../types/news';
 
 interface AdminManageNewsProps {
   onEditArticle: (articleId: string) => void;
@@ -55,6 +51,18 @@ export const AdminManageNews: React.FC<AdminManageNewsProps> = ({ onEditArticle,
 
   const trashCount = allArticles.filter(a => Boolean(a.deletedAt)).length;
 
+  const handlePermanentDelete = (id: string, headline: string) => {
+    if (window.confirm(`Are you sure you want to permanently delete "${headline}"?\n\nThis action cannot be undone.`)) {
+      store.permanentDeleteArticle(id);
+    }
+  };
+
+  const handleEmptyTrash = () => {
+    if (window.confirm(`Are you sure you want to permanently delete ALL ${trashCount} item(s) in Trash?\n\nThis action cannot be undone.`)) {
+      store.emptyTrash();
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Header & Create Action */}
@@ -64,7 +72,7 @@ export const AdminManageNews: React.FC<AdminManageNewsProps> = ({ onEditArticle,
             Manage Articles & Drafts
           </h1>
           <p className="text-xs text-stone-500 mt-0.5">
-            Review live articles, edit drafts, or restore deleted articles from trash (30-day recovery window).
+            Review live articles, edit drafts, or manage deleted articles in Trash (with 30-day auto-purge and manual permanent delete).
           </p>
         </div>
 
@@ -121,6 +129,27 @@ export const AdminManageNews: React.FC<AdminManageNewsProps> = ({ onEditArticle,
         </div>
       </div>
 
+      {/* Trash Auto-Purge Policy Notice & Empty Trash Button */}
+      {statusFilter === 'deleted' && (
+        <div className="p-4 bg-red-50 border border-red-200 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-red-900">
+          <div className="flex items-start gap-2.5">
+            <AlertTriangle size={18} className="text-red-600 shrink-0 mt-0.5" />
+            <div>
+              <span className="font-bold">Trash Management Policy:</span> Articles in Trash remain recoverable for 30 days before being automatically purged permanently. You can restore articles back to published status or permanently delete them now.
+            </div>
+          </div>
+          {trashCount > 0 && (
+            <button
+              onClick={handleEmptyTrash}
+              className="px-3.5 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-bold text-xs flex items-center justify-center gap-1.5 shrink-0 cursor-pointer shadow-xs"
+            >
+              <Trash2 size={14} />
+              <span>Empty Trash Now ({trashCount})</span>
+            </button>
+          )}
+        </div>
+      )}
+
       {/* Articles Table */}
       <div className="bg-white border border-stone-200 rounded-xl overflow-hidden shadow-xs">
         <div className="overflow-x-auto">
@@ -139,7 +168,7 @@ export const AdminManageNews: React.FC<AdminManageNewsProps> = ({ onEditArticle,
               {filtered.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="py-10 text-center text-stone-400">
-                    No articles found matching criteria.
+                    {statusFilter === 'deleted' ? 'Trash is currently empty.' : 'No articles found matching criteria.'}
                   </td>
                 </tr>
               ) : (
@@ -162,7 +191,7 @@ export const AdminManageNews: React.FC<AdminManageNewsProps> = ({ onEditArticle,
                     <td className="py-3.5 px-3">
                       {art.deletedAt ? (
                         <span className="px-2 py-0.5 bg-red-100 text-red-700 font-bold rounded">
-                          Deleted (Trash)
+                          Deleted (In Trash)
                         </span>
                       ) : (
                         <span className={`px-2 py-0.5 rounded font-bold uppercase tracking-wider text-[10px] ${
@@ -192,13 +221,24 @@ export const AdminManageNews: React.FC<AdminManageNewsProps> = ({ onEditArticle,
 
                     <td className="py-3.5 px-4 text-right space-x-1.5 whitespace-nowrap">
                       {art.deletedAt ? (
-                        <button
-                          onClick={() => store.restoreArticle(art.id)}
-                          className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-xs font-semibold cursor-pointer inline-flex items-center gap-1"
-                        >
-                          <RotateCcw size={12} />
-                          <span>Restore</span>
-                        </button>
+                        <div className="inline-flex items-center gap-1.5">
+                          <button
+                            onClick={() => store.restoreArticle(art.id)}
+                            className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-xs font-semibold cursor-pointer inline-flex items-center gap-1"
+                            title="Restore Article to Published"
+                          >
+                            <RotateCcw size={12} />
+                            <span>Restore</span>
+                          </button>
+                          <button
+                            onClick={() => handlePermanentDelete(art.id, art.headline)}
+                            className="px-2 py-1 bg-red-100 hover:bg-red-200 text-red-700 rounded text-xs font-semibold cursor-pointer inline-flex items-center gap-1"
+                            title="Permanently Delete Article"
+                          >
+                            <Trash2 size={12} />
+                            <span>Delete Permanently</span>
+                          </button>
+                        </div>
                       ) : (
                         <>
                           <button

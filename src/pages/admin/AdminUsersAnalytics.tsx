@@ -21,7 +21,8 @@ import {
   AlertCircle, 
   Clock, 
   Sparkles,
-  ExternalLink
+  Inbox,
+  UserCheck
 } from 'lucide-react';
 import { useNewsStore } from '../../lib/newsStore';
 import { useLanguage } from '../../lib/i18n';
@@ -41,6 +42,7 @@ export const AdminUsersAnalytics: React.FC = () => {
   const activeCount = store.getActiveUsersCount();
   const toolMetrics = store.getToolUsageMetrics();
   const dbStatus = store.getDbSyncStatus();
+  const submissions = store.getSubmissions();
   const currentUser = store.getCurrentUser();
 
   const handleForceSync = () => {
@@ -85,37 +87,40 @@ export const AdminUsersAnalytics: React.FC = () => {
     ? activeSessions 
     : activeSessions.filter(s => s.district.toLowerCase() === filterDistrict.toLowerCase());
 
-  // Calculate district traffic percentages
+  // Calculate district traffic percentages dynamically
   const totalDistrictHits = toolMetrics.topDistricts.reduce((acc, d) => acc + d.count, 0) || 1;
 
+  // Filter reader submissions with contact information
+  const registeredReaders = submissions.filter(s => s.userName || s.userEmail);
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 min-w-0">
       {/* Top Banner & Control Bar */}
-      <div className="bg-stone-900 border border-stone-800 rounded-2xl p-5 shadow-lg flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="bg-stone-900 border border-stone-800 rounded-2xl p-4 sm:p-5 shadow-lg flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2.5">
-            <div className="w-10 h-10 rounded-xl bg-red-600/20 text-red-500 flex items-center justify-center font-bold">
+            <div className="w-10 h-10 rounded-xl bg-red-600/20 text-red-500 flex items-center justify-center font-bold shrink-0">
               <Activity size={22} className="animate-pulse" />
             </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h1 className="text-xl sm:text-2xl font-bold text-white font-serif">
+            <div className="min-w-0">
+              <div className="flex items-center flex-wrap gap-2">
+                <h1 className="text-lg sm:text-2xl font-bold text-white font-serif truncate">
                   Active Users & Live Analytics
                 </h1>
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-950 text-emerald-400 border border-emerald-800">
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-950 text-emerald-400 border border-emerald-800 shrink-0">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
-                  LIVE
+                  LIVE DB SYNC
                 </span>
               </div>
-              <p className="text-xs text-stone-400 mt-0.5">
-                Real-time reader activity, platform tool usage metrics, and database sync status
+              <p className="text-xs text-stone-400 mt-0.5 leading-normal">
+                Real-time active sessions, synced reader accounts, and tool usage metrics
               </p>
             </div>
           </div>
         </div>
 
         {/* Global Action Buttons */}
-        <div className="flex items-center flex-wrap gap-2">
+        <div className="flex items-center flex-wrap gap-2 shrink-0">
           <button
             onClick={handleForceSync}
             className="flex items-center gap-1.5 px-3 py-2 bg-stone-800 hover:bg-stone-700 text-stone-200 text-xs font-semibold rounded-xl border border-stone-700 transition-colors cursor-pointer"
@@ -129,7 +134,7 @@ export const AdminUsersAnalytics: React.FC = () => {
             className="flex items-center gap-1.5 px-3 py-2 bg-stone-800 hover:bg-stone-700 text-stone-200 text-xs font-semibold rounded-xl border border-stone-700 transition-colors cursor-pointer"
           >
             <Download size={14} />
-            <span>Export DB (.JSON)</span>
+            <span>Export Backup (.JSON)</span>
           </button>
 
           <button
@@ -170,49 +175,48 @@ export const AdminUsersAnalytics: React.FC = () => {
 
       {/* 4 Summary Stat Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Active Readers */}
+        {/* Active Sessions */}
         <div className="bg-stone-900 border border-stone-800 p-4 rounded-xl shadow-xs">
           <div className="flex items-center justify-between text-stone-400 text-xs font-medium">
-            <span>Active Readers Online</span>
+            <span>Active Live Sessions</span>
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
           </div>
           <div className="mt-2 flex items-baseline gap-2">
             <span className="text-3xl font-extrabold text-white font-serif">{activeCount}</span>
-            <span className="text-[11px] text-emerald-400 font-semibold">+18% this hour</span>
+            <span className="text-[11px] text-emerald-400 font-semibold">Active Now</span>
           </div>
-          <div className="mt-2 text-[11px] text-stone-400 flex items-center gap-3">
-            <span className="flex items-center gap-1"><Smartphone size={12} /> 74% Mobile</span>
-            <span className="flex items-center gap-1"><Monitor size={12} /> 26% Desktop</span>
+          <p className="mt-2 text-[11px] text-stone-400">
+            Real-time live connections
+          </p>
+        </div>
+
+        {/* Registered Readers & Submissions */}
+        <div className="bg-stone-900 border border-stone-800 p-4 rounded-xl shadow-xs">
+          <div className="flex items-center justify-between text-stone-400 text-xs font-medium">
+            <span>Reader Account Entries</span>
+            <UserCheck size={16} className="text-red-400" />
           </div>
+          <div className="mt-2 flex items-baseline gap-2">
+            <span className="text-3xl font-extrabold text-white font-serif">{registeredReaders.length}</span>
+            <span className="text-[11px] text-stone-400 font-normal">records synced</span>
+          </div>
+          <p className="mt-2 text-[11px] text-stone-400">
+            Reader contacts & submissions
+          </p>
         </div>
 
         {/* Platform Tool Usage */}
         <div className="bg-stone-900 border border-stone-800 p-4 rounded-xl shadow-xs">
           <div className="flex items-center justify-between text-stone-400 text-xs font-medium">
-            <span>Story Card Downloads</span>
+            <span>Story Cards & Shares</span>
             <Sparkles size={16} className="text-amber-400" />
           </div>
           <div className="mt-2 flex items-baseline gap-2">
             <span className="text-3xl font-extrabold text-white font-serif">{toolMetrics.storyCardDownloads}</span>
-            <span className="text-[11px] text-stone-400 font-normal">cards created</span>
+            <span className="text-[11px] text-emerald-400 font-semibold">{toolMetrics.articleShares.total} shares</span>
           </div>
           <p className="mt-2 text-[11px] text-stone-400">
-            Reader visual cards generated
-          </p>
-        </div>
-
-        {/* Social Shares */}
-        <div className="bg-stone-900 border border-stone-800 p-4 rounded-xl shadow-xs">
-          <div className="flex items-center justify-between text-stone-400 text-xs font-medium">
-            <span>Social Shares</span>
-            <Share2 size={16} className="text-red-400" />
-          </div>
-          <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-3xl font-extrabold text-white font-serif">{toolMetrics.articleShares.total}</span>
-            <span className="text-[11px] text-emerald-400 font-semibold">WA: {toolMetrics.articleShares.whatsapp}</span>
-          </div>
-          <p className="mt-2 text-[11px] text-stone-400">
-            FB: {toolMetrics.articleShares.facebook} • Copy: {toolMetrics.articleShares.copyLink}
+            WhatsApp: {toolMetrics.articleShares.whatsapp} • FB: {toolMetrics.articleShares.facebook}
           </p>
         </div>
 
@@ -234,10 +238,10 @@ export const AdminUsersAnalytics: React.FC = () => {
       </div>
 
       {/* Dashboard Sub-Tabs */}
-      <div className="flex items-center border-b border-stone-800 gap-2">
+      <div className="flex items-center border-b border-stone-800 gap-1 sm:gap-2 overflow-x-auto no-scrollbar">
         <button
           onClick={() => setActiveTab('sessions')}
-          className={`pb-3 px-4 text-xs font-bold border-b-2 transition-all cursor-pointer ${
+          className={`pb-3 px-3 sm:px-4 text-xs font-bold border-b-2 transition-all cursor-pointer whitespace-nowrap ${
             activeTab === 'sessions'
               ? 'border-red-500 text-white'
               : 'border-transparent text-stone-400 hover:text-stone-200'
@@ -247,7 +251,7 @@ export const AdminUsersAnalytics: React.FC = () => {
         </button>
         <button
           onClick={() => setActiveTab('tools')}
-          className={`pb-3 px-4 text-xs font-bold border-b-2 transition-all cursor-pointer ${
+          className={`pb-3 px-3 sm:px-4 text-xs font-bold border-b-2 transition-all cursor-pointer whitespace-nowrap ${
             activeTab === 'tools'
               ? 'border-red-500 text-white'
               : 'border-transparent text-stone-400 hover:text-stone-200'
@@ -257,7 +261,7 @@ export const AdminUsersAnalytics: React.FC = () => {
         </button>
         <button
           onClick={() => setActiveTab('sync')}
-          className={`pb-3 px-4 text-xs font-bold border-b-2 transition-all cursor-pointer ${
+          className={`pb-3 px-3 sm:px-4 text-xs font-bold border-b-2 transition-all cursor-pointer whitespace-nowrap ${
             activeTab === 'sync'
               ? 'border-red-500 text-white'
               : 'border-transparent text-stone-400 hover:text-stone-200'
@@ -269,39 +273,44 @@ export const AdminUsersAnalytics: React.FC = () => {
 
       {/* TAB 1: LIVE SESSIONS & ACTIVE READERS */}
       {activeTab === 'sessions' && (
-        <div className="space-y-4">
+        <div className="space-y-6">
           {/* Filter Bar */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-stone-900/60 p-3 rounded-xl border border-stone-800">
             <div className="flex items-center gap-2">
-              <span className="text-xs text-stone-400 font-medium">
+              <span className="text-xs text-stone-400 font-medium whitespace-nowrap">
                 Filter by District:
               </span>
               <select
                 value={filterDistrict}
                 onChange={(e) => setFilterDistrict(e.target.value)}
-                className="bg-stone-800 border border-stone-700 text-stone-200 text-xs rounded-lg px-2.5 py-1.5 focus:outline-hidden focus:ring-1 focus:ring-red-500"
+                className="bg-stone-800 border border-stone-700 text-stone-200 text-xs rounded-lg px-2.5 py-1.5 focus:outline-hidden focus:ring-1 focus:ring-red-500 cursor-pointer"
               >
                 <option value="all">All Districts</option>
-                <option value="gaya">Gaya (Default)</option>
-                <option value="patna">Patna</option>
-                <option value="muzaffarpur">Muzaffarpur</option>
-                <option value="bhagalpur">Bhagalpur</option>
-                <option value="darbhanga">Darbhanga</option>
+                {BIHAR_DISTRICTS.map(d => (
+                  <option key={d.id} value={d.id}>{d.nameEn} ({d.nameHi})</option>
+                ))}
               </select>
             </div>
 
             <div className="text-xs text-stone-400">
-              Showing <span className="text-white font-bold">{filteredSessions.length}</span> active session(s)
+              Showing <span className="text-white font-bold">{filteredSessions.length}</span> active live session(s)
             </div>
           </div>
 
           {/* Sessions Table */}
           <div className="bg-stone-900 border border-stone-800 rounded-xl overflow-hidden shadow-xs">
+            <div className="p-3 border-b border-stone-800 bg-stone-950/80 flex items-center justify-between">
+              <h3 className="font-bold text-xs text-white uppercase tracking-wider flex items-center gap-1.5">
+                <Users size={14} className="text-red-500" />
+                <span>Live Active Client Connections</span>
+              </h3>
+            </div>
+
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs text-stone-300">
                 <thead className="bg-stone-950 text-stone-400 font-semibold text-[11px] uppercase tracking-wider border-b border-stone-800">
                   <tr>
-                    <th className="py-3 px-4">Reader / User</th>
+                    <th className="py-3 px-4">User / Session</th>
                     <th className="py-3 px-4">Auth Status</th>
                     <th className="py-3 px-4">District</th>
                     <th className="py-3 px-4">Current Screen / Action</th>
@@ -316,7 +325,7 @@ export const AdminUsersAnalytics: React.FC = () => {
                       <tr key={session.id} className="hover:bg-stone-800/40 transition-colors">
                         <td className="py-3 px-4">
                           <div className="flex items-center gap-2.5">
-                            <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs ${
+                            <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs shrink-0 ${
                               isAdmin ? 'bg-red-600 text-white' : 'bg-stone-800 text-stone-300'
                             }`}>
                               {session.name.charAt(0).toUpperCase()}
@@ -325,7 +334,7 @@ export const AdminUsersAnalytics: React.FC = () => {
                               <div className="font-semibold text-white truncate flex items-center gap-1.5">
                                 {session.name}
                                 {isAdmin && (
-                                  <span className="px-1.5 py-0.2 bg-red-950 text-red-400 border border-red-800 rounded text-[9px] font-bold">
+                                  <span className="px-1.5 py-0.2 bg-red-950 text-red-400 border border-red-800 rounded text-[9px] font-bold shrink-0">
                                     ADMIN
                                   </span>
                                 )}
@@ -333,30 +342,26 @@ export const AdminUsersAnalytics: React.FC = () => {
                               {session.email ? (
                                 <div className="text-[10px] text-stone-400 truncate font-mono">{session.email}</div>
                               ) : (
-                                <div className="text-[10px] text-stone-400">Anonymous Reader</div>
+                                <div className="text-[10px] text-stone-400">Visitor</div>
                               )}
                             </div>
                           </div>
                         </td>
                         <td className="py-3 px-4">
                           {session.email ? (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-emerald-950/80 text-emerald-400 border border-emerald-800">
-                              <ShieldCheck size={11} /> Google SSO
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-emerald-950/80 text-emerald-400 border border-emerald-800 whitespace-nowrap">
+                              <ShieldCheck size={11} /> Authenticated
                             </span>
                           ) : (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-stone-800 text-stone-400">
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-stone-800 text-stone-400 whitespace-nowrap">
                               Guest Reader
                             </span>
                           )}
                         </td>
                         <td className="py-3 px-4">
-                          <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-semibold ${
-                            session.district.toLowerCase() === 'gaya'
-                              ? 'bg-red-950/70 text-red-300 border border-red-800/60'
-                              : 'bg-stone-800 text-stone-300'
-                          }`}>
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-semibold bg-stone-800 text-stone-300 uppercase whitespace-nowrap">
                             <MapPin size={11} />
-                            {session.district.toUpperCase()}
+                            {session.district}
                           </span>
                         </td>
                         <td className="py-3 px-4">
@@ -366,13 +371,13 @@ export const AdminUsersAnalytics: React.FC = () => {
                           </div>
                         </td>
                         <td className="py-3 px-4">
-                          <span className="inline-flex items-center gap-1 text-[11px] text-stone-400">
+                          <span className="inline-flex items-center gap-1 text-[11px] text-stone-400 capitalize whitespace-nowrap">
                             {session.deviceType === 'mobile' ? <Smartphone size={13} /> : <Monitor size={13} />}
-                            <span className="capitalize">{session.deviceType}</span>
+                            <span>{session.deviceType}</span>
                           </span>
                         </td>
                         <td className="py-3 px-4">
-                          <span className="inline-flex items-center gap-1 text-[11px] text-emerald-400 font-mono">
+                          <span className="inline-flex items-center gap-1 text-[11px] text-emerald-400 font-mono whitespace-nowrap">
                             <Clock size={11} />
                             Just now
                           </span>
@@ -384,6 +389,52 @@ export const AdminUsersAnalytics: React.FC = () => {
               </table>
             </div>
           </div>
+
+          {/* Database Reader Contacts & Submissions */}
+          {registeredReaders.length > 0 && (
+            <div className="bg-stone-900 border border-stone-800 rounded-xl overflow-hidden shadow-xs space-y-2">
+              <div className="p-3 bg-stone-950 border-b border-stone-800 flex items-center justify-between">
+                <h3 className="font-bold text-xs text-white uppercase tracking-wider flex items-center gap-1.5">
+                  <Inbox size={14} className="text-amber-400" />
+                  <span>Reader Accounts & Contact Submissions (Synced)</span>
+                </h3>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs text-stone-300">
+                  <thead className="bg-stone-950/60 text-stone-400 font-semibold text-[11px] uppercase tracking-wider border-b border-stone-800">
+                    <tr>
+                      <th className="py-2.5 px-4">Name</th>
+                      <th className="py-2.5 px-4">Contact Info</th>
+                      <th className="py-2.5 px-4">Type</th>
+                      <th className="py-2.5 px-4">Subject / Message</th>
+                      <th className="py-2.5 px-4">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-stone-800/60">
+                    {registeredReaders.map((sub) => (
+                      <tr key={sub.id} className="hover:bg-stone-800/40 transition-colors">
+                        <td className="py-2.5 px-4 font-semibold text-white truncate max-w-[140px]">
+                          {sub.userName || 'Reader'}
+                        </td>
+                        <td className="py-2.5 px-4 font-mono text-[11px] text-stone-400 truncate max-w-[180px]">
+                          {sub.userPhone || sub.userEmail || 'N/A'}
+                        </td>
+                        <td className="py-2.5 px-4 uppercase text-[10px] font-bold text-amber-400">
+                          {sub.type.replace('_', ' ')}
+                        </td>
+                        <td className="py-2.5 px-4 text-stone-300 truncate max-w-[240px]">
+                          {sub.subject || sub.message}
+                        </td>
+                        <td className="py-2.5 px-4 capitalize text-[11px] font-semibold text-emerald-400">
+                          {sub.status}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -479,13 +530,13 @@ export const AdminUsersAnalytics: React.FC = () => {
                   key={idx}
                   className="flex items-center justify-between p-2.5 bg-stone-800/60 border border-stone-800 rounded-lg text-xs"
                 >
-                  <div className="flex items-center gap-2">
-                    <span className="w-5 h-5 rounded-full bg-stone-700 text-stone-300 flex items-center justify-center font-mono text-[10px] font-bold">
+                  <div className="flex items-center gap-2 truncate">
+                    <span className="w-5 h-5 rounded-full bg-stone-700 text-stone-300 flex items-center justify-center font-mono text-[10px] font-bold shrink-0">
                       {idx + 1}
                     </span>
                     <span className="font-medium text-stone-200 truncate">{q.query}</span>
                   </div>
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-3 shrink-0">
                     <span className="px-2 py-0.5 bg-red-950 text-red-400 border border-red-800 rounded-md font-mono text-[11px] font-bold">
                       {q.count} searches
                     </span>
@@ -495,7 +546,7 @@ export const AdminUsersAnalytics: React.FC = () => {
             </div>
           </div>
 
-          {/* District Traffic Share */}
+          {/* District Readership Share */}
           <div className="bg-stone-900 border border-stone-800 rounded-xl p-5 shadow-xs md:col-span-2 space-y-4">
             <h3 className="font-bold text-sm text-white flex items-center gap-2">
               <MapPin size={16} className="text-red-500" />
@@ -515,13 +566,8 @@ export const AdminUsersAnalytics: React.FC = () => {
                         : 'bg-stone-800/60 border-stone-700/60'
                     }`}
                   >
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between gap-1">
                       <span className="font-bold text-xs text-white truncate">{d.name}</span>
-                      {isGaya && (
-                        <span className="text-[9px] px-1.5 py-0.2 bg-red-600 text-white rounded font-bold">
-                          DEFAULT
-                        </span>
-                      )}
                     </div>
                     <div className="mt-2 flex items-baseline justify-between">
                       <span className="text-xl font-black text-white font-serif">{d.count}</span>
@@ -544,14 +590,14 @@ export const AdminUsersAnalytics: React.FC = () => {
       {/* TAB 3: DATABASE SYNC & BACKUP MANAGEMENT */}
       {activeTab === 'sync' && (
         <div className="space-y-6">
-          <div className="bg-stone-900 border border-stone-800 rounded-xl p-6 shadow-xs space-y-5">
+          <div className="bg-stone-900 border border-stone-800 rounded-xl p-5 sm:p-6 shadow-xs space-y-5">
             <div>
               <h3 className="font-bold text-base text-white flex items-center gap-2">
                 <Database size={18} className="text-emerald-400" />
                 Database Synchronization & Integrity
               </h3>
               <p className="text-xs text-stone-400 mt-1 leading-relaxed">
-                News Bharat Plus uses a high-resilience persistent local database with real-time cross-tab synchronization and Supabase cloud sync integration.
+                News Bharat Plus uses a high-resilience persistent database with real-time cross-tab synchronization and Supabase cloud sync integration.
               </p>
             </div>
 
@@ -606,7 +652,7 @@ export const AdminUsersAnalytics: React.FC = () => {
                 </p>
               </div>
 
-              <div className="flex items-center gap-2 w-full sm:w-auto">
+              <div className="flex items-center gap-2 w-full sm:w-auto shrink-0">
                 <button
                   onClick={handleExportBackup}
                   className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-xl transition-colors shadow-xs cursor-pointer"

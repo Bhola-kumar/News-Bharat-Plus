@@ -222,7 +222,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         <div className="px-5 py-3 bg-stone-50 border-t border-stone-100 flex items-center justify-between text-[11px] text-stone-500">
           <span className="flex items-center gap-1">
             <Lock size={12} className="text-stone-400" />
-            <span>Google SSO</span>
+            <span>Google Account</span>
           </span>
           <span className="text-stone-400">News Bharat Plus</span>
         </div>

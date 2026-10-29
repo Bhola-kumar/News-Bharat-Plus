@@ -15,7 +15,7 @@ import {
   UserRole
 } from '../types/news';
 import { INITIAL_ARTICLES, INITIAL_ADS, INITIAL_MEDIA, INITIAL_SUBMISSIONS } from './mockNews';
-import { DEFAULT_SITE_SETTINGS } from './constants';
+import { DEFAULT_SITE_SETTINGS, BIHAR_DISTRICTS } from './constants';
 import { supabase, isSupabaseConfigured } from './supabase';
 
 const STORAGE_KEYS = {
@@ -227,7 +227,7 @@ class NewsStore {
   }
 
   private init() {
-    // 1. Articles
+    // 1. Articles with 30-day auto-trash purge
     const savedArticles = localStorage.getItem(STORAGE_KEYS.ARTICLES);
     if (savedArticles) {
       try {
@@ -237,8 +237,19 @@ class NewsStore {
       }
     } else {
       this.articles = INITIAL_ARTICLES;
-      this.saveArticles();
     }
+
+    // Auto-purge articles soft-deleted > 30 days ago
+    const nowMs = Date.now();
+    const thirtyDaysMs = 30 * 24 * 60 * 60 * 1000;
+    this.articles = this.articles.filter(art => {
+      if (art.deletedAt) {
+        const age = nowMs - new Date(art.deletedAt).getTime();
+        return age <= thirtyDaysMs;
+      }
+      return true;
+    });
+    this.saveArticles();
 
     // 2. Ads
     const savedAds = localStorage.getItem(STORAGE_KEYS.ADS);
@@ -329,64 +340,21 @@ class NewsStore {
   }
 
   private initDefaultSessions() {
+    const now = new Date().toISOString();
+    const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+    
     this.sessions = [
       {
-        id: 'sess-admin-1',
-        name: 'Raju Kumar (Admin)',
-        email: 'thisisrajukumar14@gmail.com',
-        role: 'admin',
-        district: 'gaya',
-        currentPage: '/admin',
-        deviceType: 'desktop',
-        startedAt: new Date(Date.now() - 1800000).toISOString(),
-        lastActiveAt: new Date(Date.now() - 30000).toISOString(),
-        lastAction: 'Reviewing Active Users & Analytics'
-      },
-      {
-        id: 'sess-reader-1',
-        name: 'Amit Verma (Verified Reader)',
-        email: 'amit.verma.patna@gmail.com',
-        role: 'consumer',
-        district: 'patna',
-        currentPage: '/district/patna',
-        deviceType: 'mobile',
-        startedAt: new Date(Date.now() - 900000).toISOString(),
-        lastActiveAt: new Date(Date.now() - 90000).toISOString(),
-        lastAction: 'Browsing Patna district headlines'
-      },
-      {
-        id: 'sess-reader-2',
-        name: 'Priya Sharma (Gaya)',
-        email: 'priya.gaya.news@gmail.com',
-        role: 'consumer',
-        district: 'gaya',
-        currentPage: '/',
-        deviceType: 'mobile',
-        startedAt: new Date(Date.now() - 600000).toISOString(),
-        lastActiveAt: new Date(Date.now() - 150000).toISOString(),
-        lastAction: 'Generating and downloading story card'
-      },
-      {
-        id: 'sess-reader-3',
-        name: 'Guest Reader #408',
-        role: 'consumer',
-        district: 'muzaffarpur',
-        currentPage: '/search',
-        deviceType: 'mobile',
-        startedAt: new Date(Date.now() - 420000).toISOString(),
-        lastActiveAt: new Date(Date.now() - 210000).toISOString(),
-        lastAction: 'Searching "BPSC exam schedule"'
-      },
-      {
-        id: 'sess-reader-4',
-        name: 'Guest Reader #912',
-        role: 'consumer',
-        district: 'bhagalpur',
-        currentPage: '/videos',
-        deviceType: 'desktop',
-        startedAt: new Date(Date.now() - 300000).toISOString(),
-        lastActiveAt: new Date(Date.now() - 80000).toISOString(),
-        lastAction: 'Watching video reporting bulletin'
+        id: this.currentUser ? `sess-usr-${this.currentUser.id}` : 'sess-client-current',
+        name: this.currentUser ? this.currentUser.name : 'Active Visitor',
+        email: this.currentUser?.email,
+        role: this.currentUser?.role || 'consumer',
+        district: this.selectedDistrict || 'gaya',
+        currentPage: typeof window !== 'undefined' ? window.location.pathname : '/',
+        deviceType: isMobile ? 'mobile' : 'desktop',
+        startedAt: now,
+        lastActiveAt: now,
+        lastAction: 'Connected to News Bharat Plus Live Portal'
       }
     ];
     this.saveSessions();
@@ -609,6 +577,11 @@ class NewsStore {
 
   public permanentDeleteArticle(id: string) {
     this.articles = this.articles.filter(a => a.id !== id);
+    this.saveArticles();
+  }
+
+  public emptyTrash() {
+    this.articles = this.articles.filter(a => !a.deletedAt);
     this.saveArticles();
   }
 
@@ -956,12 +929,31 @@ class NewsStore {
   }
 
   public getActiveUsersCount(): number {
-    const baseReaders = 18;
-    return baseReaders + Math.max(1, this.sessions.length);
+    return Math.max(1, this.sessions.length);
   }
 
   public getToolUsageMetrics(): ToolUsageMetrics {
-    return { ...this.toolMetrics };
+    // Calculate dynamic district readership based on live database articles
+    const districtCounts: Record<string, number> = {};
+    this.getPublicArticles().forEach(art => {
+      if (art.district) {
+        districtCounts[art.district] = (districtCounts[art.district] || 0) + 1;
+      }
+    });
+
+    const dynamicTopDistricts = Object.entries(districtCounts).map(([dId, count]) => {
+      const distObj = BIHAR_DISTRICTS.find(d => d.id === dId);
+      return {
+        districtId: dId,
+        name: distObj ? `${distObj.nameEn} (${distObj.nameHi})` : dId,
+        count
+      };
+    }).sort((a, b) => b.count - a.count);
+
+    return {
+      ...this.toolMetrics,
+      topDistricts: dynamicTopDistricts.length > 0 ? dynamicTopDistricts : this.toolMetrics.topDistricts
+    };
   }
 
   // --- DATABASE SYNC & INTEGRITY ---
