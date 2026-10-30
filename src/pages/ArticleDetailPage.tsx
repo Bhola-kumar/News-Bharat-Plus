@@ -12,7 +12,7 @@ import {
   Eye, 
   CheckCircle
 } from 'lucide-react';
-import { useNewsStore } from '../lib/newsStore';
+import { useNewsStore, getSafeImageUrl, DEFAULT_NEWS_IMAGE } from '../lib/newsStore';
 import { Article } from '../types/news';
 import { ShareBar } from '../components/ShareBar';
 import { VideoPlayer } from '../components/VideoPlayer';
@@ -159,15 +159,16 @@ export const ArticleDetailPage: React.FC<ArticleDetailPageProps> = ({
             </div>
           </header>
 
-          <ShareBar article={article} />
-
           <figure className="my-5 rounded-xl overflow-hidden border border-stone-200 bg-stone-100">
             <img
-              src={article.coverImageUrl}
+              src={getSafeImageUrl(article.coverImageUrl)}
               alt={article.headline}
               loading="eager"
               referrerPolicy="no-referrer"
               className="w-full aspect-16/9 object-cover"
+              onError={(e) => {
+                (e.target as HTMLImageElement).src = DEFAULT_NEWS_IMAGE;
+              }}
             />
             {(article.coverImageCaption || article.coverImageCredit) && (
               <figcaption className="p-2.5 text-xs text-stone-600 bg-stone-50 border-t border-stone-200 flex flex-col sm:flex-row justify-between gap-1 italic">
@@ -291,9 +292,12 @@ export const ArticleDetailPage: React.FC<ArticleDetailPageProps> = ({
                   >
                     <div className="w-20 aspect-4/3 bg-stone-200 rounded overflow-hidden shrink-0">
                       <img 
-                        src={rel.coverImageUrl} 
+                        src={getSafeImageUrl(rel.coverImageUrl)} 
                         alt={rel.headline}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform" 
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = DEFAULT_NEWS_IMAGE;
+                        }}
                       />
                     </div>
                     <div className="flex-1">

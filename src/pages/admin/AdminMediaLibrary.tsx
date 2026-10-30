@@ -151,8 +151,12 @@ export const AdminMediaLibrary: React.FC = () => {
           {mediaList.map((asset) => (
             <div key={asset.id} className="bg-stone-950 border border-stone-800 rounded-xl overflow-hidden shadow-xs flex flex-col justify-between text-xs">
               <div>
-                <div className="aspect-16/9 bg-stone-900 overflow-hidden relative">
-                  <img src={asset.url} alt={asset.filename} className="w-full h-full object-cover" />
+                <div className="aspect-16/9 bg-stone-900 overflow-hidden relative flex items-center justify-center">
+                  {asset.url ? (
+                    <img src={asset.url} alt={asset.filename} className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="text-[10px] text-stone-500">No URL</span>
+                  )}
                   <button
                     onClick={() => store.toggleMediaProtection(asset.id)}
                     className={`absolute top-2 right-2 p-1.5 rounded-md font-bold text-[10px] flex items-center gap-1 cursor-pointer shadow-md ${

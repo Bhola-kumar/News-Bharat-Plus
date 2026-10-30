@@ -12,7 +12,7 @@ import {
   Video, 
   FileText
 } from 'lucide-react';
-import { useNewsStore } from '../lib/newsStore';
+import { useNewsStore, getSafeImageUrl, DEFAULT_NEWS_IMAGE } from '../lib/newsStore';
 import { AdBanner } from '../components/AdBanner';
 import { useLanguage } from '../lib/i18n';
 
@@ -118,11 +118,14 @@ export const HomePage: React.FC<HomePageProps> = ({ onSelectArticle, onNavigate 
               className="relative aspect-16/9 w-full bg-stone-100 overflow-hidden cursor-pointer group"
             >
               <img
-                src={leadStory.coverImageUrl}
+                src={getSafeImageUrl(leadStory.coverImageUrl)}
                 alt={leadStory.headline}
                 loading="eager"
                 referrerPolicy="no-referrer"
                 className="w-full h-full object-cover group-hover:scale-102 transition-transform duration-300"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = DEFAULT_NEWS_IMAGE;
+                }}
               />
               <div className="absolute top-3 left-3 bg-red-600 text-white text-xs font-bold px-2.5 py-1 rounded shadow-xs uppercase tracking-wider">
                 {t('leadStory')}
@@ -195,11 +198,14 @@ export const HomePage: React.FC<HomePageProps> = ({ onSelectArticle, onNavigate 
               >
                 <div className="w-24 sm:w-28 aspect-4/3 bg-stone-100 rounded overflow-hidden shrink-0">
                   <img
-                    src={story.coverImageUrl}
+                    src={getSafeImageUrl(story.coverImageUrl)}
                     alt={story.headline}
                     loading="lazy"
                     referrerPolicy="no-referrer"
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = DEFAULT_NEWS_IMAGE;
+                    }}
                   />
                 </div>
                 <div className="flex-1 flex flex-col justify-between">
@@ -250,11 +256,14 @@ export const HomePage: React.FC<HomePageProps> = ({ onSelectArticle, onNavigate 
               >
                 <div className="aspect-16/9 w-full bg-stone-100 overflow-hidden relative">
                   <img
-                    src={story.coverImageUrl}
+                    src={getSafeImageUrl(story.coverImageUrl)}
                     alt={story.headline}
                     loading="lazy"
                     referrerPolicy="no-referrer"
                     className="w-full h-full object-cover group-hover:scale-103 transition-transform"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = DEFAULT_NEWS_IMAGE;
+                    }}
                   />
                   <div className="absolute bottom-2 left-2 bg-black/60 text-white text-[10px] px-2 py-0.5 rounded">
                     {story.location}
@@ -347,11 +356,14 @@ export const HomePage: React.FC<HomePageProps> = ({ onSelectArticle, onNavigate 
               <div>
                 <div className="aspect-16/10 rounded overflow-hidden mb-2 bg-stone-100">
                   <img
-                    src={item.coverImageUrl}
+                    src={getSafeImageUrl(item.coverImageUrl)}
                     alt={item.headline}
                     loading="lazy"
                     referrerPolicy="no-referrer"
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = DEFAULT_NEWS_IMAGE;
+                    }}
                   />
                 </div>
                 <div className="text-[11px] text-stone-500 mb-1 flex items-center justify-between">
@@ -394,11 +406,14 @@ export const HomePage: React.FC<HomePageProps> = ({ onSelectArticle, onNavigate 
             >
               <div className="aspect-16/9 bg-stone-100 overflow-hidden">
                 <img
-                  src={story.coverImageUrl}
+                  src={getSafeImageUrl(story.coverImageUrl)}
                   alt={story.headline}
                   loading="lazy"
                   referrerPolicy="no-referrer"
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = DEFAULT_NEWS_IMAGE;
+                  }}
                 />
               </div>
               <div className="p-3.5 flex-1 flex flex-col justify-between">
@@ -445,10 +460,13 @@ export const HomePage: React.FC<HomePageProps> = ({ onSelectArticle, onNavigate 
               >
                 <div className="relative aspect-video bg-stone-950 overflow-hidden">
                   <img
-                    src={vid.coverImageUrl}
+                    src={getSafeImageUrl(vid.coverImageUrl)}
                     alt={vid.headline}
                     loading="lazy"
                     className="w-full h-full object-cover opacity-85 group-hover:opacity-100 group-hover:scale-103 transition-all"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = DEFAULT_NEWS_IMAGE;
+                    }}
                   />
                   <div className="absolute inset-0 flex items-center justify-center bg-black/30 group-hover:bg-black/10 transition-colors">
                     <div className="w-12 h-12 bg-red-600 rounded-full flex items-center justify-center text-white shadow-lg">
@@ -492,11 +510,14 @@ export const HomePage: React.FC<HomePageProps> = ({ onSelectArticle, onNavigate 
               >
                 <div className="w-24 aspect-square bg-stone-100 rounded overflow-hidden shrink-0">
                   <img
-                    src={item.coverImageUrl}
+                    src={getSafeImageUrl(item.coverImageUrl)}
                     alt={item.headline}
                     loading="lazy"
                     referrerPolicy="no-referrer"
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = DEFAULT_NEWS_IMAGE;
+                    }}
                   />
                 </div>
                 <div className="flex-1 flex flex-col justify-between">

@@ -9,7 +9,7 @@ import {
   RotateCcw, 
   Clock 
 } from 'lucide-react';
-import { useNewsStore } from '../lib/newsStore';
+import { useNewsStore, getSafeImageUrl, DEFAULT_NEWS_IMAGE } from '../lib/newsStore';
 import { useLanguage } from '../lib/i18n';
 
 interface SearchPageProps {
@@ -291,11 +291,14 @@ export const SearchPage: React.FC<SearchPageProps> = ({ initialQuery = '', onSel
             >
               <div className="aspect-16/9 bg-stone-100 overflow-hidden relative">
                 <img
-                  src={item.coverImageUrl}
+                  src={getSafeImageUrl(item.coverImageUrl)}
                   alt={item.headline}
                   loading="lazy"
                   referrerPolicy="no-referrer"
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = DEFAULT_NEWS_IMAGE;
+                  }}
                 />
                 <div className="absolute bottom-2 left-2 bg-black/60 text-white text-[10px] px-2 py-0.5 rounded">
                   {item.location}

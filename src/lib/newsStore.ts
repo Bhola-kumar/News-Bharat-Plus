@@ -128,6 +128,15 @@ const stringArray = (value: unknown): string[] =>
 const optionalString = (value: unknown): string | undefined =>
   typeof value === 'string' && value.length > 0 ? value : undefined;
 
+export const DEFAULT_NEWS_IMAGE = 'https://images.unsplash.com/photo-1504711434969-e33886168f5c?auto=format&fit=crop&q=80&w=800';
+
+export function getSafeImageUrl(url?: string | null): string {
+  if (!url || typeof url !== 'string' || !url.trim()) {
+    return DEFAULT_NEWS_IMAGE;
+  }
+  return url.trim();
+}
+
 function mapArticle(row: DbRow): Article {
   return {
     id: stringValue(row.id),
@@ -136,7 +145,7 @@ function mapArticle(row: DbRow): Article {
     summary: stringValue(row.summary),
     body: stringValue(row.body),
     keyPoints: Array.isArray(row.key_points) ? row.key_points as string[] : [],
-    coverImageUrl: stringValue(row.cover_image_url),
+    coverImageUrl: stringValue(row.cover_image_url) || DEFAULT_NEWS_IMAGE,
     coverImageCaption: optionalString(row.cover_image_caption),
     coverImageCredit: optionalString(row.cover_image_credit),
     galleryImages: Array.isArray(row.gallery_images) ? row.gallery_images as Article['galleryImages'] : [],

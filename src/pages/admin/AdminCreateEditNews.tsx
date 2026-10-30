@@ -255,7 +255,13 @@ export const AdminCreateEditNews: React.FC<AdminCreateEditNewsProps> = ({
             <h2 className="text-xl sm:text-2xl font-bold text-white leading-snug">{headline || 'Headline will appear here'}</h2>
             {summary && <p className="text-sm text-stone-300 italic mt-2 border-l-2 border-stone-700 pl-2">{summary}</p>}
             <div className="my-4 aspect-16/9 rounded-lg overflow-hidden bg-stone-800">
-              <img src={coverImageUrl} alt="Preview" className="w-full h-full object-cover" />
+              {coverImageUrl ? (
+                <img src={coverImageUrl} alt="Preview" className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-xs text-stone-500 italic">
+                  No cover image URL provided
+                </div>
+              )}
             </div>
             <div className="prose prose-invert text-sm text-stone-200 space-y-3" dangerouslySetInnerHTML={{ __html: body || '<p>Article body will appear here...</p>' }} />
           </div>

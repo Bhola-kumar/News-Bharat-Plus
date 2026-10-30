@@ -149,8 +149,12 @@ export const AdminAdManager: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="my-2.5 rounded overflow-hidden border border-stone-800 bg-stone-950">
-                  <img src={ad.desktopBannerUrl} alt={ad.title} className="w-full max-h-24 object-cover" />
+                <div className="my-2.5 rounded overflow-hidden border border-stone-800 bg-stone-950 min-h-16 flex items-center justify-center">
+                  {ad.desktopBannerUrl ? (
+                    <img src={ad.desktopBannerUrl} alt={ad.title} className="w-full max-h-24 object-cover" />
+                  ) : (
+                    <span className="text-[11px] text-stone-500 py-4">No banner image</span>
+                  )}
                 </div>
 
                 <div className="grid grid-cols-3 gap-2 p-2.5 bg-stone-950 rounded-lg text-center font-mono text-xs border border-stone-800">

@@ -70,9 +70,9 @@ export const AdBanner: React.FC<AdBannerProps> = ({
           title={`${ad.advertiserName} - Open in new tab`}
         >
           <picture className="w-full">
-            <source media="(max-width: 640px)" srcSet={ad.mobileBannerUrl} />
+            {ad.mobileBannerUrl ? <source media="(max-width: 640px)" srcSet={ad.mobileBannerUrl} /> : null}
             <img 
-              src={ad.desktopBannerUrl} 
+              src={ad.desktopBannerUrl || ad.mobileBannerUrl || undefined} 
               alt={ad.title} 
               loading="lazy"
               referrerPolicy="no-referrer"
