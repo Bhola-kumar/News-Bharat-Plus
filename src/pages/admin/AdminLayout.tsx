@@ -17,13 +17,13 @@ import {
   Shield,
   Activity,
   ChevronDown,
-  Globe,
   Menu,
   X,
   Sun,
   Moon
 } from 'lucide-react';
 import { useNewsStore } from '../../lib/newsStore';
+import { useLanguage } from '../../lib/i18n';
 
 export type AdminTab = 
   | 'dashboard' 
@@ -49,6 +49,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
   children 
 }) => {
   const store = useNewsStore();
+  const { language, setLanguage } = useLanguage();
   const currentUser = store.getCurrentUser();
   const currentTheme = store.getTheme();
   const isDark = currentTheme === 'dark';
@@ -74,14 +75,14 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
     icon: any;
     badge?: number;
   }[] = [
-    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { id: 'users_analytics', label: 'Active Users & Analytics', icon: Activity },
-    { id: 'create_news', label: 'Create News', icon: FilePlus },
-    { id: 'manage_news', label: 'Manage News', icon: Files },
-    { id: 'ads', label: 'Ad Manager', icon: Megaphone },
-    { id: 'inbox', label: 'Editorial Inbox', icon: Inbox, badge: unreadCount > 0 ? unreadCount : undefined },
-    { id: 'media', label: 'Media Library', icon: ImageIcon },
-    { id: 'settings', label: 'Portal Settings', icon: Settings },
+    { id: 'dashboard', label: language === 'hi' ? 'डैशबोर्ड' : 'Dashboard', icon: LayoutDashboard },
+    { id: 'users_analytics', label: language === 'hi' ? 'सक्रिय उपयोगकर्ता और विश्लेषण' : 'Active Users & Analytics', icon: Activity },
+    { id: 'create_news', label: language === 'hi' ? 'समाचार बनाएँ' : 'Create News', icon: FilePlus },
+    { id: 'manage_news', label: language === 'hi' ? 'समाचार प्रबंधन' : 'Manage News', icon: Files },
+    { id: 'ads', label: language === 'hi' ? 'विज्ञापन प्रबंधक' : 'Ad Manager', icon: Megaphone },
+    { id: 'inbox', label: language === 'hi' ? 'संपादकीय इनबॉक्स' : 'Editorial Inbox', icon: Inbox, badge: unreadCount > 0 ? unreadCount : undefined },
+    { id: 'media', label: language === 'hi' ? 'मीडिया लाइब्रेरी' : 'Media Library', icon: ImageIcon },
+    { id: 'settings', label: language === 'hi' ? 'पोर्टल सेटिंग्स' : 'Portal Settings', icon: Settings },
   ];
 
   const displayName = currentUser
@@ -154,7 +155,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
 
             <div className="flex items-center justify-between pt-1">
               <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-amber-400/20 text-amber-500 border border-amber-400/30">
-                Admin
+                {language === 'hi' ? 'एडमिन' : 'Admin'}
               </span>
 
               <button
@@ -163,25 +164,10 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
                 className="text-[11px] text-red-600 hover:text-red-500 font-semibold cursor-pointer flex items-center gap-1 hover:underline"
               >
                 <ExternalLink size={12} />
-                <span>View Website</span>
+                <span>{language === 'hi' ? 'वेबसाइट देखें' : 'View Website'}</span>
               </button>
             </div>
           </div>
-
-          {/* Theme Switcher inside Dropdown */}
-          <button
-            type="button"
-            onClick={() => store.toggleTheme()}
-            className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
-              isDark ? 'bg-stone-800 hover:bg-stone-700 text-stone-200' : 'bg-stone-100 hover:bg-stone-200 text-stone-800'
-            }`}
-          >
-            <span className="flex items-center gap-2">
-              {currentTheme === 'dark' ? <Sun size={14} className="text-amber-400" /> : <Moon size={14} className="text-indigo-500" />}
-              <span>Switch Theme</span>
-            </span>
-            <span className="text-[10px] font-mono uppercase">{currentTheme} Mode</span>
-          </button>
 
           <button
             type="button"
@@ -197,7 +183,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
   );
 
   return (
-    <div className={`min-h-screen flex flex-col md:flex-row transition-colors duration-200 ${
+    <div className={`admin-theme ${isDark ? 'admin-theme-dark' : 'admin-theme-light'} min-h-screen flex flex-col md:flex-row transition-colors duration-200 ${
       isDark ? 'bg-stone-950 text-stone-100' : 'bg-stone-100 text-stone-900'
     }`}>
       {/* Desktop Sidebar */}
@@ -217,7 +203,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
                 isDark ? 'text-white' : 'text-stone-900'
               }`}>News Bharat Plus</h2>
               <p className={`text-[10px] uppercase tracking-widest ${isDark ? 'text-stone-400' : 'text-stone-500'}`}>
-                Editorial & Admin Portal
+                {language === 'hi' ? 'संपादकीय एवं एडमिन पोर्टल' : 'Editorial & Admin Portal'}
               </p>
             </div>
           </button>
@@ -260,7 +246,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
             }`}
           >
             <ExternalLink size={14} />
-            <span>View Public Website</span>
+            <span>{language === 'hi' ? 'सार्वजनिक वेबसाइट देखें' : 'View Public Website'}</span>
           </button>
         </div>
       </aside>
@@ -294,13 +280,38 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
           </div>
 
           <div className="flex items-center gap-2">
+            <div className={`flex items-center rounded-md border p-0.5 ${
+              isDark ? 'bg-stone-800 border-stone-700' : 'bg-stone-100 border-stone-300'
+            }`} role="group" aria-label="Select language">
+              <button
+                type="button"
+                onClick={() => setLanguage('en')}
+                aria-pressed={language === 'en'}
+                className={`px-2 py-1 rounded text-[10px] font-bold transition-colors cursor-pointer ${
+                  language === 'en' ? 'bg-red-600 text-white' : isDark ? 'text-stone-300 hover:text-white' : 'text-stone-600 hover:text-stone-900'
+                }`}
+              >
+                EN
+              </button>
+              <button
+                type="button"
+                onClick={() => setLanguage('hi')}
+                aria-pressed={language === 'hi'}
+                className={`px-2 py-1 rounded text-[10px] font-bold transition-colors cursor-pointer ${
+                  language === 'hi' ? 'bg-red-600 text-white' : isDark ? 'text-stone-300 hover:text-white' : 'text-stone-600 hover:text-stone-900'
+                }`}
+              >
+                हिन्दी
+              </button>
+            </div>
             <button
               type="button"
               onClick={() => store.toggleTheme()}
               className={`p-1.5 rounded-md border text-xs cursor-pointer ${
                 isDark ? 'bg-stone-800 border-stone-700 text-amber-400' : 'bg-stone-100 border-stone-300 text-indigo-600'
               }`}
-              title="Toggle Theme"
+              title={isDark ? 'Switch to Light Theme' : 'Switch to Dark Theme'}
+              aria-label={isDark ? 'Switch to Light Theme' : 'Switch to Dark Theme'}
             >
               {isDark ? <Sun size={15} /> : <Moon size={15} />}
             </button>
@@ -316,7 +327,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
             <div className={`text-[10px] uppercase font-bold tracking-wider px-3 pt-1 pb-1.5 ${
               isDark ? 'text-stone-500' : 'text-stone-400'
             }`}>
-              Portal Menu
+              {language === 'hi' ? 'पोर्टल मेनू' : 'Portal Menu'}
             </div>
             {navItems.map((item) => {
               const Icon = item.icon;
@@ -354,7 +365,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
                 }`}
               >
                 <ExternalLink size={14} />
-                <span>View Public Website</span>
+                <span>{language === 'hi' ? 'सार्वजनिक वेबसाइट देखें' : 'View Public Website'}</span>
               </button>
             </div>
           </div>
@@ -365,42 +376,46 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
           isDark ? 'bg-stone-900 border-stone-800 text-stone-200' : 'bg-white border-stone-200 text-stone-800'
         }`}>
           <div className={`text-xs font-medium ${isDark ? 'text-stone-400' : 'text-stone-500'}`}>
-            News Bharat Plus Control Panel
+            {language === 'hi' ? 'न्यूज़ भारत प्लस नियंत्रण पैनल' : 'News Bharat Plus Control Panel'}
           </div>
 
           <div className="flex items-center gap-3">
-            {/* Theme Switcher Button */}
+            <div className={`flex items-center rounded-md border p-0.5 ${
+              isDark ? 'bg-stone-800 border-stone-700' : 'bg-stone-100 border-stone-300'
+            }`} role="group" aria-label="Select language">
+              <button
+                type="button"
+                onClick={() => setLanguage('en')}
+                aria-pressed={language === 'en'}
+                className={`px-2.5 py-1 rounded text-[11px] font-bold transition-colors cursor-pointer ${
+                  language === 'en' ? 'bg-red-600 text-white' : isDark ? 'text-stone-300 hover:text-white' : 'text-stone-600 hover:text-stone-900'
+                }`}
+              >
+                EN
+              </button>
+              <button
+                type="button"
+                onClick={() => setLanguage('hi')}
+                aria-pressed={language === 'hi'}
+                className={`px-2.5 py-1 rounded text-[11px] font-bold transition-colors cursor-pointer ${
+                  language === 'hi' ? 'bg-red-600 text-white' : isDark ? 'text-stone-300 hover:text-white' : 'text-stone-600 hover:text-stone-900'
+                }`}
+              >
+                हिन्दी
+              </button>
+            </div>
             <button
               type="button"
               onClick={() => store.toggleTheme()}
-              className={`flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold rounded-md border transition-colors cursor-pointer ${
+              className={`p-2 text-xs rounded-md border transition-colors cursor-pointer ${
                 isDark 
                   ? 'bg-stone-800 hover:bg-stone-700 text-stone-200 border-stone-700' 
                   : 'bg-stone-100 hover:bg-stone-200 text-stone-800 border-stone-300'
               }`}
               title={isDark ? 'Switch to Light Theme' : 'Switch to Dark Theme'}
+              aria-label={isDark ? 'Switch to Light Theme' : 'Switch to Dark Theme'}
             >
-              {isDark ? (
-                <>
-                  <Sun size={13} className="text-amber-400" />
-                  <span>Light Mode</span>
-                </>
-              ) : (
-                <>
-                  <Moon size={13} className="text-indigo-600" />
-                  <span>Dark Mode</span>
-                </>
-              )}
-            </button>
-
-            <button
-              onClick={() => onNavigatePublic('/')}
-              className={`text-xs font-medium flex items-center gap-1 cursor-pointer hover:underline ${
-                isDark ? 'text-stone-300 hover:text-white' : 'text-stone-600 hover:text-stone-900'
-              }`}
-            >
-              <Globe size={13} className={isDark ? 'text-stone-400' : 'text-stone-500'} />
-              <span>Public Website</span>
+              {isDark ? <Sun size={15} className="text-amber-400" /> : <Moon size={15} className="text-indigo-600" />}
             </button>
 
             {renderUserDropdown()}

@@ -6,7 +6,7 @@
 export type CoverageType = 'National' | 'Regional';
 export type ArticleFormat = 'Article' | 'Video' | 'Photo';
 export type ArticleStatus = 'draft' | 'scheduled' | 'published' | 'archived' | 'deleted';
-export type UserRole = 'consumer' | 'editor' | 'admin';
+export type UserRole = 'reader' | 'admin';
 
 export interface DistrictInfo {
   id: string;

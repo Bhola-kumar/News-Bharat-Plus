@@ -10,7 +10,6 @@ import {
   Clock 
 } from 'lucide-react';
 import { useNewsStore } from '../lib/newsStore';
-import { BIHAR_DISTRICTS, TOPICS } from '../lib/constants';
 import { useLanguage } from '../lib/i18n';
 
 interface SearchPageProps {
@@ -22,6 +21,8 @@ export const SearchPage: React.FC<SearchPageProps> = ({ initialQuery = '', onSel
   const store = useNewsStore();
   const { language, t, getDistrictName, getTopicName } = useLanguage();
   const allArticles = store.getPublicArticles();
+  const districts = store.getDistricts();
+  const topics = store.getTopics();
 
   // Filter States
   const [keyword, setKeyword] = useState(initialQuery);
@@ -179,7 +180,7 @@ export const SearchPage: React.FC<SearchPageProps> = ({ initialQuery = '', onSel
               className="w-full px-2.5 py-2 bg-stone-50 border border-stone-300 rounded-md focus:bg-white focus:outline-hidden"
             >
               <option value="all">{t('allBihar')}</option>
-              {BIHAR_DISTRICTS.map(d => (
+              {districts.map(d => (
                 <option key={d.id} value={d.id}>{getDistrictName(d.id)}</option>
               ))}
             </select>
@@ -196,7 +197,7 @@ export const SearchPage: React.FC<SearchPageProps> = ({ initialQuery = '', onSel
               className="w-full px-2.5 py-2 bg-stone-50 border border-stone-300 rounded-md focus:bg-white focus:outline-hidden"
             >
               <option value="all">{t('allTopics')}</option>
-              {TOPICS.map(tItem => (
+              {topics.map(tItem => (
                 <option key={tItem.id} value={tItem.slug}>{getTopicName(tItem.slug)}</option>
               ))}
             </select>

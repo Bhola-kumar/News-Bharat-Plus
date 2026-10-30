@@ -26,7 +26,6 @@ import {
 } from 'lucide-react';
 import { useNewsStore } from '../../lib/newsStore';
 import { useLanguage } from '../../lib/i18n';
-import { BIHAR_DISTRICTS } from '../../lib/constants';
 
 export const AdminUsersAnalytics: React.FC = () => {
   const store = useNewsStore();
@@ -43,11 +42,12 @@ export const AdminUsersAnalytics: React.FC = () => {
   const toolMetrics = store.getToolUsageMetrics();
   const dbStatus = store.getDbSyncStatus();
   const submissions = store.getSubmissions();
+  const districts = store.getDistricts();
   const currentUser = store.getCurrentUser();
 
-  const handleForceSync = () => {
-    store.forceSync();
-    setSyncNotice('Database & open tabs synchronized successfully.');
+  const handleForceSync = async () => {
+    const synced = await store.forceSync();
+    setSyncNotice(synced ? 'Supabase database synchronized successfully.' : 'Database synchronization failed.');
     setTimeout(() => setSyncNotice(null), 3000);
   };
 
@@ -74,9 +74,10 @@ export const AdminUsersAnalytics: React.FC = () => {
     reader.onload = (event) => {
       const content = event.target?.result as string;
       if (content) {
-        const result = store.importDatabaseBackup(content);
-        setImportStatus(result);
-        setTimeout(() => setImportStatus(null), 6000);
+        void store.importDatabaseBackup(content).then(result => {
+          setImportStatus(result);
+          setTimeout(() => setImportStatus(null), 6000);
+        });
       }
     };
     reader.readAsText(file);
@@ -227,12 +228,12 @@ export const AdminUsersAnalytics: React.FC = () => {
             <Database size={16} className="text-emerald-400" />
           </div>
           <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-lg font-bold text-emerald-400 flex items-center gap-1.5">
-              <CheckCircle2 size={18} /> Synced
+            <span className={`text-lg font-bold flex items-center gap-1.5 ${dbStatus.supabaseStatus === 'Connected' ? 'text-emerald-400' : 'text-red-400'}`}>
+              <CheckCircle2 size={18} /> {dbStatus.supabaseStatus}
             </span>
           </div>
           <p className="mt-2 text-[11px] text-stone-400">
-            {dbStatus.articlesCount} Articles • {dbStatus.storageUsageKb} KB used
+            {dbStatus.articlesCount} articles and {dbStatus.adsCount} advertisements loaded from Supabase
           </p>
         </div>
       </div>
@@ -286,7 +287,7 @@ export const AdminUsersAnalytics: React.FC = () => {
                 className="bg-stone-800 border border-stone-700 text-stone-200 text-xs rounded-lg px-2.5 py-1.5 focus:outline-hidden focus:ring-1 focus:ring-red-500 cursor-pointer"
               >
                 <option value="all">All Districts</option>
-                {BIHAR_DISTRICTS.map(d => (
+                {districts.map(d => (
                   <option key={d.id} value={d.id}>{d.nameEn} ({d.nameHi})</option>
                 ))}
               </select>
@@ -320,7 +321,7 @@ export const AdminUsersAnalytics: React.FC = () => {
                 </thead>
                 <tbody className="divide-y divide-stone-800/60">
                   {filteredSessions.map((session) => {
-                    const isAdmin = session.role === 'admin' || session.role === 'editor';
+                    const isAdmin = session.role === 'admin';
                     return (
                       <tr key={session.id} className="hover:bg-stone-800/40 transition-colors">
                         <td className="py-3 px-4">
@@ -597,26 +598,26 @@ export const AdminUsersAnalytics: React.FC = () => {
                 Database Synchronization & Integrity
               </h3>
               <p className="text-xs text-stone-400 mt-1 leading-relaxed">
-                News Bharat Plus uses a high-resilience persistent database with real-time cross-tab synchronization and Supabase cloud sync integration.
+                Application content and analytics are stored in Supabase. Realtime database changes refresh this portal automatically.
               </p>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-2">
               <div className="p-3 bg-stone-950 border border-stone-800 rounded-xl">
                 <div className="text-[11px] text-stone-400">Storage Engine</div>
-                <div className="font-bold text-white text-xs mt-1">Local Persistent + Bus</div>
-                <div className="text-[10px] text-emerald-400 mt-0.5 flex items-center gap-1">
-                  <CheckCircle2 size={11} /> Cross-Tab Active
+                <div className="font-bold text-white text-xs mt-1">{dbStatus.storageEngine}</div>
+                <div className={`text-[10px] mt-0.5 flex items-center gap-1 ${dbStatus.supabaseStatus === 'Connected' ? 'text-emerald-400' : 'text-red-400'}`}>
+                  <CheckCircle2 size={11} /> {dbStatus.crossTabSyncActive ? 'Realtime Active' : dbStatus.supabaseStatus}
                 </div>
               </div>
 
               <div className="p-3 bg-stone-950 border border-stone-800 rounded-xl">
                 <div className="text-[11px] text-stone-400">Supabase Cloud Sync</div>
                 <div className="font-bold text-white text-xs mt-1">
-                  {dbStatus.isSupabaseConfigured ? 'Connected' : 'Standby / Local Fallback'}
+                  {dbStatus.supabaseStatus}
                 </div>
                 <div className="text-[10px] text-stone-400 mt-0.5">
-                  {dbStatus.isSupabaseConfigured ? 'Ready for cloud queries' : 'Ready (set keys in .env)'}
+                  {dbStatus.isSupabaseConfigured ? 'Supabase database connection' : 'Supabase configuration required'}
                 </div>
               </div>
 
@@ -636,7 +637,7 @@ export const AdminUsersAnalytics: React.FC = () => {
                   {new Date(dbStatus.lastSyncedAt).toLocaleTimeString()}
                 </div>
                 <div className="text-[10px] text-emerald-400 mt-0.5 flex items-center gap-1">
-                  <Clock size={11} /> Live In-Memory & Disc
+                  <Clock size={11} /> Supabase database
                 </div>
               </div>
             </div>
@@ -648,7 +649,7 @@ export const AdminUsersAnalytics: React.FC = () => {
                   Download Complete Database Snapshot
                 </h4>
                 <p className="text-[11px] text-stone-400">
-                  Download a complete JSON snapshot of all articles, ads, media references, and settings.
+                  Download a JSON snapshot of articles, revisions, ads, reader submissions, media references, and settings.
                 </p>
               </div>
 

@@ -14,7 +14,6 @@ import {
   Instagram
 } from 'lucide-react';
 import { useNewsStore } from '../lib/newsStore';
-import { BIHAR_DISTRICTS, TOPICS } from '../lib/constants';
 import { useLanguage } from '../lib/i18n';
 
 interface FooterProps {
@@ -24,6 +23,8 @@ interface FooterProps {
 export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
   const store = useNewsStore();
   const settings = store.getSettings();
+  const districts = store.getDistricts();
+  const topics = store.getTopics();
   const { language, t, getDistrictName } = useLanguage();
 
   return (
@@ -34,7 +35,9 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
         <div className="lg:col-span-2 space-y-3">
           <div className="flex items-baseline gap-2">
             <span className="text-2xl font-black text-red-500 tracking-tight font-serif">
-              {language === 'hi' ? 'न्यूज़ भारत प्लस' : 'News Bharat Plus'}
+              {language === 'hi'
+                ? settings.siteNameHi || t('siteName')
+                : settings.siteNameEn || t('siteName')}
             </span>
             <span className="text-xs font-bold text-stone-400 tracking-widest uppercase">
               {language === 'hi' ? 'NEWS BHARAT PLUS' : 'न्यूज़ भारत प्लस'}
@@ -99,7 +102,7 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
                 {t('navNational')}
               </button>
             </li>
-            {TOPICS.slice(0, 5).map(t => (
+            {topics.slice(0, 5).map(t => (
               <li key={t.id}>
                 <button onClick={() => onNavigate(`/topic/${t.slug}`)} className="hover:text-white transition-colors cursor-pointer">
                   {language === 'hi' ? t.nameHi : t.nameEn}
@@ -115,7 +118,7 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
             {t('districtsHeading')}
           </h4>
           <ul className="space-y-2 text-xs">
-            {BIHAR_DISTRICTS.filter(d => d.isPopular).map(dist => (
+            {districts.filter(d => d.isPopular).map(dist => (
               <li key={dist.id}>
                 <button 
                   onClick={() => {

@@ -19,7 +19,6 @@ import {
   Moon
 } from 'lucide-react';
 import { useNewsStore } from '../lib/newsStore';
-import { BIHAR_DISTRICTS, TOPICS } from '../lib/constants';
 import { useLanguage } from '../lib/i18n';
 
 interface HeaderProps {
@@ -32,7 +31,10 @@ export const Header: React.FC<HeaderProps> = ({ currentPath, onNavigate, onOpenA
   const store = useNewsStore();
   const { language, setLanguage, toggleLanguage, t, getDistrictName, getTopicName } = useLanguage();
   const selectedDistrictId = store.getSelectedDistrict();
+  const districts = store.getDistricts();
+  const topics = store.getTopics();
   const currentUser = store.getCurrentUser();
+  const settings = store.getSettings();
   const currentTheme = store.getTheme();
   const isDark = currentTheme === 'dark';
 
@@ -42,7 +44,7 @@ export const Header: React.FC<HeaderProps> = ({ currentPath, onNavigate, onOpenA
   const [searchQuery, setSearchQuery] = useState('');
   const userDropdownRef = useRef<HTMLDivElement>(null);
 
-  const selectedDistrict = BIHAR_DISTRICTS.find(d => d.id === selectedDistrictId) || BIHAR_DISTRICTS[0];
+  const selectedDistrict = districts.find(d => d.id === selectedDistrictId) || districts[0];
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -90,7 +92,6 @@ export const Header: React.FC<HeaderProps> = ({ currentPath, onNavigate, onOpenA
           <div className="flex items-center gap-3">
             <span className="text-stone-200 font-medium">{todayStr}</span>
             <span className="hidden md:inline text-stone-600">|</span>
-            <span className="hidden md:inline text-stone-400">{t('todayWeather')}</span>
           </div>
 
           <div className="flex items-center gap-2 sm:gap-3">
@@ -183,26 +184,27 @@ export const Header: React.FC<HeaderProps> = ({ currentPath, onNavigate, onOpenA
                 {userDropdownOpen && (
                   <div className="absolute right-0 mt-2 w-64 bg-stone-900 border border-stone-700 text-stone-200 rounded-xl shadow-2xl z-50 p-3 space-y-3 animate-in fade-in zoom-in-95 duration-150">
                     <div className="border-b border-stone-800 pb-2.5">
-                      <div className="flex items-center gap-2.5 mb-2">
+                      <div className="flex items-center justify-between gap-2.5 mb-2">
                         <div className="w-8 h-8 rounded-full bg-red-600 flex items-center justify-center text-white font-bold text-sm shrink-0">
                           {displayName[0]?.toUpperCase() || 'U'}
                         </div>
-                        <div className="overflow-hidden">
-                          <p className="text-xs font-bold text-white truncate capitalize">
-                            {displayName}
-                          </p>
+                        <div className="overflow-hidden flex-1">
+                          <div className="flex items-center justify-between gap-2">
+                            <p className="text-xs font-bold text-white truncate capitalize">
+                              {displayName}
+                            </p>
+                            <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-amber-400/20 text-amber-300 border border-amber-400/30 shrink-0">
+                              {roleLabel}
+                            </span>
+                          </div>
                           <p className="text-[11px] text-stone-400 truncate" title={currentUser.email}>
                             {currentUser.email}
                           </p>
                         </div>
                       </div>
 
-                      <div className="flex items-center justify-between pt-1">
-                        <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-amber-400/20 text-amber-300 border border-amber-400/30">
-                          {roleLabel}
-                        </span>
-
-                        {currentUser.role === 'admin' && (
+                      {currentUser.role === 'admin' && (
+                        <div className="flex justify-center pt-1">
                           <button
                             onClick={() => {
                               setUserDropdownOpen(false);
@@ -213,22 +215,9 @@ export const Header: React.FC<HeaderProps> = ({ currentPath, onNavigate, onOpenA
                             <ShieldCheck size={12} />
                             <span>Admin Portal</span>
                           </button>
-                        )}
-                      </div>
+                        </div>
+                      )}
                     </div>
-
-                    {/* Theme Switcher inside Modal */}
-                    <button
-                      type="button"
-                      onClick={() => store.toggleTheme()}
-                      className="w-full flex items-center justify-between px-3 py-2 bg-stone-800 hover:bg-stone-700 text-stone-200 rounded-lg text-xs font-semibold transition-colors cursor-pointer"
-                    >
-                      <span className="flex items-center gap-2">
-                        {currentTheme === 'dark' ? <Sun size={14} className="text-amber-400" /> : <Moon size={14} className="text-indigo-300" />}
-                        <span>Toggle Theme</span>
-                      </span>
-                      <span className="text-[10px] text-stone-400 font-mono uppercase">{currentTheme} Mode</span>
-                    </button>
 
                     <button
                       type="button"
@@ -267,14 +256,16 @@ export const Header: React.FC<HeaderProps> = ({ currentPath, onNavigate, onOpenA
           >
             <div className="flex items-baseline gap-2">
               <span className="text-2xl sm:text-3xl font-extrabold text-red-600 tracking-tight font-serif">
-                {language === 'hi' ? 'न्यूज़ भारत प्लस' : 'News Bharat Plus'}
+                {language === 'hi'
+                  ? settings.siteNameHi || t('siteName')
+                  : settings.siteNameEn || t('siteName')}
               </span>
               <span className="hidden lg:inline text-xs font-bold text-stone-400 tracking-widest uppercase">
                 {language === 'hi' ? 'NEWS BHARAT PLUS' : 'न्यूज़ भारत प्लस'}
               </span>
             </div>
             <p className="text-[11px] text-stone-500 hidden sm:block">
-              {t('tagline')}
+              {settings.taglineHi || t('tagline')}
             </p>
           </button>
         </div>
@@ -289,7 +280,7 @@ export const Header: React.FC<HeaderProps> = ({ currentPath, onNavigate, onOpenA
               title={t('selectDistrict')}
             >
               <MapPin size={15} className="text-red-600 shrink-0" />
-              <span className="font-semibold text-stone-900">{getDistrictName(selectedDistrict.id)}</span>
+              <span className="font-semibold text-stone-900">{getDistrictName(selectedDistrict?.id || '')}</span>
               <ChevronDown size={14} className="text-stone-500" />
             </button>
 
@@ -303,7 +294,7 @@ export const Header: React.FC<HeaderProps> = ({ currentPath, onNavigate, onOpenA
                   {t('allDistricts')}
                 </div>
                 <div className="grid grid-cols-2 gap-1">
-                  {BIHAR_DISTRICTS.map(d => (
+                  {districts.map(d => (
                     <button
                       key={d.id}
                       onClick={() => {
@@ -388,7 +379,7 @@ export const Header: React.FC<HeaderProps> = ({ currentPath, onNavigate, onOpenA
               {t('navNational')}
             </button>
 
-            {TOPICS.slice(0, 5).map(topic => (
+            {topics.slice(0, 5).map(topic => (
               <button
                 key={topic.id}
                 onClick={() => onNavigate(`/topic/${topic.slug}`)}

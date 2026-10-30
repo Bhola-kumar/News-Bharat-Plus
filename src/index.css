@@ -44,3 +44,95 @@
   animation-play-state: paused;
 }
 
+.admin-theme-light {
+  color-scheme: light;
+  --admin-surface: 255 255 255;
+  --admin-surface-alt: 248 250 252;
+  --admin-surface-muted: 241 245 249;
+  --admin-hover: 231 229 228;
+  --admin-text: 28 25 23;
+  --admin-secondary: 68 64 60;
+  --admin-subtle: 87 83 78;
+  --admin-border: 231 229 228;
+}
+
+.admin-theme-light [class~="bg-stone-900"] { background-color: rgb(var(--admin-surface)) !important; }
+.admin-theme-light [class~="bg-stone-900/80"] { background-color: rgb(var(--admin-surface) / 0.8) !important; }
+.admin-theme-light [class~="bg-stone-900/60"] { background-color: rgb(var(--admin-surface) / 0.6) !important; }
+.admin-theme-light [class~="bg-stone-950"] { background-color: rgb(var(--admin-surface-alt)) !important; }
+.admin-theme-light [class~="bg-stone-950/80"] { background-color: rgb(var(--admin-surface-alt) / 0.8) !important; }
+.admin-theme-light [class~="bg-stone-950/60"] { background-color: rgb(var(--admin-surface-alt) / 0.6) !important; }
+.admin-theme-light [class~="bg-stone-800"] { background-color: rgb(var(--admin-surface-muted)) !important; }
+.admin-theme-light [class~="bg-stone-800/90"] { background-color: rgb(var(--admin-surface-muted) / 0.9) !important; }
+.admin-theme-light [class~="bg-stone-800/60"] { background-color: rgb(var(--admin-surface-muted) / 0.6) !important; }
+.admin-theme-light [class~="bg-stone-800/50"] { background-color: rgb(var(--admin-surface-muted) / 0.5) !important; }
+.admin-theme-light [class~="bg-stone-800/40"] { background-color: rgb(var(--admin-surface-muted) / 0.4) !important; }
+.admin-theme-light [class~="bg-stone-700"] { background-color: rgb(var(--admin-hover)) !important; }
+.admin-theme-light [class~="bg-stone-500"] { background-color: rgb(120 113 108) !important; }
+.admin-theme-light [class~="bg-stone-400"] { background-color: rgb(168 162 158) !important; }
+.admin-theme-light [class~="bg-stone-300"] { background-color: rgb(214 211 209) !important; }
+.admin-theme-light [class~="bg-stone-200"] { background-color: rgb(var(--admin-hover)) !important; }
+.admin-theme-light [class~="bg-stone-100"] { background-color: rgb(245 245 244) !important; }
+.admin-theme-light [class~="bg-stone-50"] { background-color: rgb(250 250 249) !important; }
+.admin-theme-light [class~="text-stone-100"],
+.admin-theme-light [class~="text-stone-200"],
+.admin-theme-light [class~="text-stone-300"] { color: rgb(var(--admin-text)) !important; }
+.admin-theme-light [class~="text-stone-400"],
+.admin-theme-light [class~="text-stone-500"] { color: rgb(var(--admin-subtle)) !important; }
+.admin-theme-light :is(
+  [class~="bg-stone-900"], [class~="bg-stone-900/80"], [class~="bg-stone-900/60"],
+  [class~="bg-stone-950"], [class~="bg-stone-950/80"], [class~="bg-stone-950/60"],
+  [class~="bg-stone-800"], [class~="bg-stone-800/90"], [class~="bg-stone-800/60"],
+  [class~="bg-stone-800/50"], [class~="bg-stone-800/40"], [class~="bg-stone-700"]
+)[class~="text-white"]:not([class*="bg-red-"]):not([class*="bg-amber-"]):not([class*="bg-green-"]):not([class*="bg-emerald-"]):not([class*="bg-sky-"]):not([class*="bg-blue-"]),
+.admin-theme-light :is(
+  [class~="bg-stone-900"], [class~="bg-stone-900/80"], [class~="bg-stone-900/60"],
+  [class~="bg-stone-950"], [class~="bg-stone-950/80"], [class~="bg-stone-950/60"],
+  [class~="bg-stone-800"], [class~="bg-stone-800/90"], [class~="bg-stone-800/60"],
+  [class~="bg-stone-800/50"], [class~="bg-stone-800/40"], [class~="bg-stone-700"]
+) [class~="text-white"]:not([class*="bg-red-"]):not([class*="bg-amber-"]):not([class*="bg-green-"]):not([class*="bg-emerald-"]):not([class*="bg-sky-"]):not([class*="bg-blue-"]) { color: rgb(var(--admin-text)) !important; }
+.admin-theme-light [class~="hover:bg-stone-800"]:hover,
+.admin-theme-light [class~="hover:bg-stone-700"]:hover { background-color: rgb(var(--admin-hover)) !important; }
+.admin-theme-light [class~="hover:text-white"]:hover { color: rgb(var(--admin-text)) !important; }
+.admin-theme-light [class~="border-stone-800"],
+.admin-theme-light [class~="border-stone-800/60"],
+.admin-theme-light [class~="border-stone-700"],
+.admin-theme-light [class~="border-stone-700/60"],
+.admin-theme-light [class~="divide-stone-800/60"] > :not(:last-child),
+.admin-theme-light [class~="divide-stone-800/70"] > :not(:last-child),
+.admin-theme-light [class~="divide-stone-800/80"] > :not(:last-child) { border-color: rgb(var(--admin-border)) !important; }
+.admin-theme-light [class~="border-stone-100"],
+.admin-theme-light [class~="border-stone-200"],
+.admin-theme-light [class~="border-stone-300"] { border-color: rgb(var(--admin-border)) !important; }
+
+.admin-theme-dark {
+  color-scheme: dark;
+  --admin-surface: 28 25 23;
+  --admin-surface-alt: 12 10 9;
+  --admin-surface-muted: 41 37 36;
+  --admin-hover: 68 64 60;
+  --admin-text: 250 250 249;
+  --admin-secondary: 231 229 228;
+  --admin-subtle: 168 162 158;
+  --admin-border: 68 64 60;
+}
+
+.admin-theme-dark [class~="bg-white"] { background-color: rgb(var(--admin-surface)) !important; }
+.admin-theme-dark [class~="bg-stone-50"],
+.admin-theme-dark [class~="bg-stone-100"] { background-color: rgb(var(--admin-surface-muted)) !important; }
+.admin-theme-dark [class~="bg-stone-200"],
+.admin-theme-dark [class~="bg-stone-300"] { background-color: rgb(var(--admin-hover)) !important; }
+.admin-theme-dark [class~="text-stone-900"],
+.admin-theme-dark [class~="text-stone-800"] { color: rgb(var(--admin-text)) !important; }
+.admin-theme-dark [class~="text-stone-700"],
+.admin-theme-dark [class~="text-stone-600"] { color: rgb(var(--admin-secondary)) !important; }
+.admin-theme-dark [class~="text-stone-500"] { color: rgb(var(--admin-subtle)) !important; }
+.admin-theme-dark [class~="hover:bg-stone-100"]:hover,
+.admin-theme-dark [class~="hover:bg-stone-200"]:hover { background-color: rgb(var(--admin-hover)) !important; }
+.admin-theme-dark [class~="hover:text-stone-900"]:hover,
+.admin-theme-dark [class~="hover:text-stone-800"]:hover { color: rgb(var(--admin-text)) !important; }
+.admin-theme-dark [class~="border-stone-100"],
+.admin-theme-dark [class~="border-stone-200"],
+.admin-theme-dark [class~="border-stone-300"],
+.admin-theme-dark [class~="divide-stone-100"] > :not(:last-child),
+.admin-theme-dark [class~="divide-stone-200"] > :not(:last-child) { border-color: rgb(var(--admin-border)) !important; }

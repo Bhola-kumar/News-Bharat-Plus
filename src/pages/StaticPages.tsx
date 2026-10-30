@@ -15,7 +15,6 @@ import {
   Lock
 } from 'lucide-react';
 import { useNewsStore } from '../lib/newsStore';
-import { BIHAR_DISTRICTS } from '../lib/constants';
 import { SubmissionType } from '../types/news';
 import { useLanguage } from '../lib/i18n';
 
@@ -32,6 +31,7 @@ export const StaticPages: React.FC<StaticPagesProps> = ({
 }) => {
   const store = useNewsStore();
   const settings = store.getSettings();
+  const districts = store.getDistricts();
   const currentUser = store.getCurrentUser();
   const { language, t, getDistrictName } = useLanguage();
 
@@ -51,9 +51,9 @@ export const StaticPages: React.FC<StaticPagesProps> = ({
   const [advName, setAdvName] = useState('');
   const [advBusiness, setAdvBusiness] = useState('');
   const [advContact, setAdvContact] = useState('');
-  const [advDistrict, setAdvDistrict] = useState('patna');
+  const [advDistrict, setAdvDistrict] = useState(districts[0]?.id || '');
   const [advDates, setAdvDates] = useState('');
-  const [advBudget, setAdvBudget] = useState('₹10,000 - ₹25,000');
+  const [advBudget, setAdvBudget] = useState('');
   const [advMessage, setAdvMessage] = useState('');
   const [advSuccess, setAdvSuccess] = useState(false);
 
@@ -66,7 +66,7 @@ export const StaticPages: React.FC<StaticPagesProps> = ({
   }, [currentUser]);
 
   // Handle Suggestion/Correction submission
-  const handleSubmissionSubmit = (e: React.FormEvent) => {
+  const handleSubmissionSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!currentUser) {
       onOpenAuth(
@@ -78,7 +78,7 @@ export const StaticPages: React.FC<StaticPagesProps> = ({
       return;
     }
 
-    store.addSubmission({
+    const saved = await store.addSubmission({
       type: subType,
       userName: currentUser.name,
       userEmail: currentUser.email,
@@ -89,13 +89,14 @@ export const StaticPages: React.FC<StaticPagesProps> = ({
       targetDistrict: subDistrict
     });
 
+    if (!saved) return;
     setSubSuccess(true);
     setMessage('');
     setSubject('');
   };
 
   // Handle Advertising inquiry submission
-  const handleAdInquirySubmit = (e: React.FormEvent) => {
+  const handleAdInquirySubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!currentUser) {
       onOpenAuth(
@@ -107,7 +108,7 @@ export const StaticPages: React.FC<StaticPagesProps> = ({
       return;
     }
 
-    store.addSubmission({
+    const saved = await store.addSubmission({
       type: 'advertising_inquiry',
       userName: advName.trim() || currentUser.name,
       userEmail: currentUser.email,
@@ -120,6 +121,7 @@ export const StaticPages: React.FC<StaticPagesProps> = ({
       budget: advBudget
     });
 
+    if (!saved) return;
     setAdvSuccess(true);
     setAdvMessage('');
     setAdvDates('');
@@ -291,7 +293,7 @@ export const StaticPages: React.FC<StaticPagesProps> = ({
                         className="w-full px-3 py-2 text-xs border border-stone-300 rounded-lg focus:ring-2 focus:ring-red-500 bg-white"
                       >
                         <option value="all">{t('allBihar')}</option>
-                        {BIHAR_DISTRICTS.map(d => (
+                        {districts.map(d => (
                           <option key={d.id} value={d.id}>{getDistrictName(d.id)}</option>
                         ))}
                       </select>
@@ -457,7 +459,7 @@ export const StaticPages: React.FC<StaticPagesProps> = ({
                     onChange={(e) => setSubDistrict(e.target.value)}
                     className="w-full px-3 py-2 text-xs border border-stone-300 rounded-lg focus:ring-2 focus:ring-red-500 bg-white"
                   >
-                    {BIHAR_DISTRICTS.map(d => (
+                    {districts.map(d => (
                       <option key={d.id} value={d.id}>{getDistrictName(d.id)}</option>
                     ))}
                   </select>

@@ -6,7 +6,6 @@
 import React from 'react';
 import { Clock } from 'lucide-react';
 import { useNewsStore } from '../lib/newsStore';
-import { TOPICS } from '../lib/constants';
 import { AdBanner } from '../components/AdBanner';
 import { useLanguage } from '../lib/i18n';
 
@@ -25,6 +24,7 @@ export const CategoryPage: React.FC<CategoryPageProps> = ({
   const store = useNewsStore();
   const { language, t, getTopicName } = useLanguage();
   const allArticles = store.getPublicArticles();
+  const topics = store.getTopics();
 
   let title = 'News';
   let subtitle = 'Latest updates, reports and analysis';
@@ -43,7 +43,7 @@ export const CategoryPage: React.FC<CategoryPageProps> = ({
       : 'India, central governance, parliament, national security, policy and judiciary';
     filtered = allArticles.filter(a => a.coverage === 'National');
   } else if (type === 'topic' && topicSlug) {
-    const topic = TOPICS.find(t => t.slug === topicSlug);
+    const topic = topics.find(t => t.slug === topicSlug);
     title = getTopicName(topicSlug);
     subtitle = topic?.description || 'Curated category reporting';
     filtered = allArticles.filter(a => a.topics.includes(topicSlug));

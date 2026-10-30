@@ -25,22 +25,21 @@ export const AdminMediaLibrary: React.FC = () => {
   const [lastCleanupResult, setLastCleanupResult] = useState<CleanupLog | null>(null);
   const [isCleaning, setIsCleaning] = useState(false);
 
-  const handleUpload = (e: React.FormEvent) => {
+  const handleUpload = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!uploadUrl.trim() || !uploadFilename.trim()) return;
 
-    store.uploadMedia(uploadFilename.trim(), uploadUrl.trim(), 1450000);
+    const saved = await store.uploadMedia(uploadFilename.trim(), uploadUrl.trim());
+    if (!saved) return;
     setUploadUrl('');
     setUploadFilename('');
   };
 
-  const handleRunCleanup = () => {
+  const handleRunCleanup = async () => {
     setIsCleaning(true);
-    setTimeout(() => {
-      const result = store.runScheduledMediaCleanup();
-      setLastCleanupResult(result);
-      setIsCleaning(false);
-    }, 600);
+    const result = await store.runScheduledMediaCleanup();
+    setLastCleanupResult(result);
+    setIsCleaning(false);
   };
 
   const totalBytes = mediaList.reduce((acc, m) => acc + m.fileSizeBytes, 0);

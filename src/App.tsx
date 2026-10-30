@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { useNewsStore, isAuthorizedAdminEmail, getAuthorizedAdminEmails } from './lib/newsStore';
+import { useNewsStore } from './lib/newsStore';
 import { Article } from './types/news';
 import { useLanguage } from './lib/i18n';
 import { getGoogleClientId, initializeGoogleIdentity } from './lib/googleAuth';
@@ -68,8 +68,6 @@ export default function App() {
 
   // Admin SSO Gate States (Strictly on /admin)
   const [adminAuthError, setAdminAuthError] = useState<string | null>(null);
-  const [adminGoogleEmail, setAdminGoogleEmail] = useState('');
-  const [promptAdminEmail, setPromptAdminEmail] = useState(false);
   const [adminIsSigningIn, setAdminIsSigningIn] = useState(false);
 
   const clientId = getGoogleClientId();
@@ -128,32 +126,65 @@ export default function App() {
     navigateTo('/suggestion');
   };
 
-  const isStaff = currentUser?.role === 'editor' || currentUser?.role === 'admin';
+  const isStaff = currentUser?.role === 'admin';
   const isAdminView = currentPath.startsWith('/admin');
 
-  // Handle Admin Google SSO
-  const processAdminSsoEmail = (email: string, name?: string) => {
+  const processAdminGoogleSignIn = () => {
     setAdminAuthError(null);
+    if (!clientId || !window.google?.accounts?.id) {
+      setAdminAuthError('Google OAuth is not configured. Configure Google Identity and Supabase Auth before signing in.');
+      return;
+    }
     setAdminIsSigningIn(true);
-
-    const cleanEmail = email.trim().toLowerCase();
-    const authorized = isAuthorizedAdminEmail(cleanEmail);
-
-    setTimeout(() => {
-      setAdminIsSigningIn(false);
-      if (authorized) {
-        const adminName = name || cleanEmail.split('@')[0].replace(/[._-]/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-        store.login(adminName, cleanEmail, 'admin');
-        setPromptAdminEmail(false);
-      } else {
-        setAdminAuthError(
-          `Access Denied: "${cleanEmail}" is not authorized. Only designated editorial staff accounts have portal access.`
-        );
+    const initialized = initializeGoogleIdentity(user => {
+      if (!user.idToken) {
+        setAdminIsSigningIn(false);
+        setAdminAuthError('Google did not return an ID token.');
+        return;
       }
-    }, 400);
+      void store.signInWithGoogleToken(user.idToken).then(account => {
+        setAdminIsSigningIn(false);
+        if (!account) {
+          setAdminAuthError(store.getDatabaseError() || 'Authentication failed.');
+        } else if (account.role !== 'admin') {
+          setAdminAuthError('This authenticated account has no admin role in its Supabase profile.');
+        }
+      });
+    });
+    if (initialized) {
+      window.google.accounts.id.prompt();
+    } else {
+      setAdminIsSigningIn(false);
+      setAdminAuthError('Google Identity could not be initialized.');
+    }
   };
 
   // --- RENDER ADMIN PORTAL IF PATH IS /admin ---
+  if (!store.isReady()) {
+    const status = store.getDbSyncStatus().supabaseStatus;
+    return (
+      <div className="min-h-screen bg-stone-950 text-stone-100 flex items-center justify-center p-6">
+        <div className="max-w-xl w-full bg-stone-900 border border-stone-800 rounded-2xl p-7 space-y-4">
+          <h1 className="text-xl font-bold">News Bharat Plus database</h1>
+          <p className="text-sm text-stone-300">
+            {status === 'Loading' ? 'Connecting to Supabase and loading application data…' : store.getDatabaseError()}
+          </p>
+          {status !== 'Loading' && (
+            <div className="text-xs text-stone-400 space-y-2">
+              <p>Apply <code>supabase/schema.sql</code> in the Supabase SQL Editor, then verify the project URL and anon key in the deployment environment.</p>
+              <button
+                onClick={() => { void store.forceSync(); }}
+                className="px-4 py-2 bg-red-600 hover:bg-red-700 rounded-lg text-white font-bold"
+              >
+                Retry connection
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   if (isAdminView) {
     if (!isStaff) {
       return (
@@ -167,11 +198,10 @@ export default function App() {
                 Editorial & Admin Portal
               </h1>
               <p className="text-xs text-stone-400 mt-2 leading-relaxed">
-                This restricted portal is for authorized editors and administrators of News Bharat Plus.
+                This restricted portal is for authorized administrators of News Bharat Plus.
               </p>
             </div>
 
-            {/* Error banner if email not in VITE_ADMIN_EMAILS */}
             {adminAuthError && (
               <div className="p-3 bg-red-950/80 border border-red-700 rounded-xl text-left text-xs text-red-200 flex items-start gap-2">
                 <AlertTriangle size={18} className="text-red-400 shrink-0 mt-0.5" />
@@ -179,66 +209,11 @@ export default function App() {
               </div>
             )}
 
-            {/* Prompt for Google Email if Client ID not set or custom prompt */}
-            {promptAdminEmail ? (
-              <form 
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  processAdminSsoEmail(adminGoogleEmail);
-                }}
-                className="space-y-3 pt-2 text-left"
-              >
-                <div className="p-3 bg-stone-900 border border-stone-800 rounded-xl">
-                  <label className="block text-[11px] font-bold text-stone-300 mb-1">
-                    Enter your authorized Google Email:
-                  </label>
-                  <input
-                    type="email"
-                    required
-                    autoFocus
-                    value={adminGoogleEmail}
-                    onChange={(e) => setAdminGoogleEmail(e.target.value)}
-                    placeholder="editor@newsbharatplus.in"
-                    className="w-full px-3 py-2 text-xs border border-stone-700 rounded-lg bg-stone-950 text-white focus:ring-2 focus:ring-red-500 focus:outline-hidden"
-                  />
-                  <p className="text-[10px] text-stone-400 mt-1">
-                    Please enter your registered staff email address.
-                  </p>
-                </div>
-
-                <div className="flex gap-2">
-                  <button
-                    type="button"
-                    onClick={() => { setPromptAdminEmail(false); setAdminAuthError(null); }}
-                    className="flex-1 py-2 text-xs font-semibold text-stone-400 bg-stone-800 hover:bg-stone-700 rounded-lg transition-colors cursor-pointer"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={adminIsSigningIn}
-                    className="flex-1 py-2 text-xs font-bold text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors cursor-pointer disabled:opacity-50"
-                  >
-                    {adminIsSigningIn ? 'Verifying...' : 'Sign In'}
-                  </button>
-                </div>
-              </form>
-            ) : (
-              <div className="space-y-3 pt-1">
-                {/* Real Google Login Button for Staff */}
+            <div className="space-y-3 pt-1">
                 <button
                   type="button"
-                  onClick={() => {
-                    if (clientId && window.google?.accounts?.id) {
-                      initializeGoogleIdentity((user) => {
-                        processAdminSsoEmail(user.email, user.name);
-                      });
-                      window.google.accounts.id.prompt();
-                    } else {
-                      setPromptAdminEmail(true);
-                    }
-                  }}
-                  disabled={adminIsSigningIn}
+                  onClick={processAdminGoogleSignIn}
+                  disabled={adminIsSigningIn || !clientId}
                   className="w-full py-3 px-4 bg-white hover:bg-stone-100 text-stone-900 font-bold text-xs sm:text-sm rounded-xl transition-all shadow-md flex items-center justify-center gap-3 cursor-pointer disabled:opacity-50"
                 >
                   {/* Google G Logo */}
@@ -266,10 +241,9 @@ export default function App() {
                 </button>
 
                 <p className="text-[11px] text-stone-400 leading-relaxed pt-1">
-                  Only authorized editorial staff accounts are granted access.
+                  Admin access is granted by the admin role in the Supabase profile.
                 </p>
-              </div>
-            )}
+            </div>
 
             <div className="pt-2">
               <button
@@ -294,6 +268,11 @@ export default function App() {
         }}
         onNavigatePublic={navigateTo}
       >
+        {store.getDatabaseError() && (
+          <div role="alert" className="mb-4 rounded-lg border border-red-800 bg-red-950/80 p-3 text-xs text-red-200">
+            Supabase operation failed: {store.getDatabaseError()}
+          </div>
+        )}
         {adminTab === 'dashboard' && (
           <AdminDashboard
             onSelectTab={setAdminTab}
@@ -419,6 +398,11 @@ export default function App() {
     <div className={`min-h-screen flex flex-col font-sans transition-colors duration-200 ${
       isDark ? 'bg-stone-950 text-stone-100 dark' : 'bg-stone-50 text-stone-900'
     }`}>
+      {store.getDatabaseError() && (
+        <div role="alert" className="fixed top-3 right-3 z-50 max-w-lg rounded-lg border border-red-800 bg-red-950/95 p-3 text-xs text-red-100 shadow-lg">
+          Supabase operation failed: {store.getDatabaseError()}
+        </div>
+      )}
       {/* 1. Header with Logo, District Dropdown & Search (Strictly consumer, with Language Changer) */}
       <Header
         currentPath={currentPath}
@@ -456,4 +440,3 @@ export default function App() {
     </div>
   );
 }
-

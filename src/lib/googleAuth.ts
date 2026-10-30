@@ -12,6 +12,7 @@ declare global {
 export interface GoogleUserPayload {
   email: string;
   name: string;
+  idToken?: string;
   picture?: string;
   sub?: string;
 }
@@ -19,7 +20,7 @@ export interface GoogleUserPayload {
 /**
  * Parses JWT id_token returned by Google Identity Services
  */
-export function parseJwtPayload(token: string): GoogleUserPayload | null {
+export function parseJwtPayload(token: string): Omit<GoogleUserPayload, 'idToken'> | null {
   try {
     const base64Url = token.split('.')[1];
     const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
@@ -59,7 +60,7 @@ export function initializeGoogleIdentity(onSuccess: (user: GoogleUserPayload) =>
         if (response.credential) {
           const payload = parseJwtPayload(response.credential);
           if (payload) {
-            onSuccess(payload);
+            onSuccess({ ...payload, idToken: response.credential });
           }
         }
       },

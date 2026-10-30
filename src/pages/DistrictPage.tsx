@@ -6,7 +6,6 @@
 import React from 'react';
 import { MapPin, Clock } from 'lucide-react';
 import { useNewsStore } from '../lib/newsStore';
-import { BIHAR_DISTRICTS } from '../lib/constants';
 import { AdBanner } from '../components/AdBanner';
 import { useLanguage } from '../lib/i18n';
 
@@ -23,7 +22,11 @@ export const DistrictPage: React.FC<DistrictPageProps> = ({
 }) => {
   const store = useNewsStore();
   const { language, t, getDistrictName } = useLanguage();
-  const district = BIHAR_DISTRICTS.find(d => d.id === districtId) || BIHAR_DISTRICTS[0];
+  const districts = store.getDistricts();
+  const district = districts.find(d => d.id === districtId);
+  if (!district) {
+    return <div className="p-12 text-center text-stone-600">District not found.</div>;
+  }
   const articles = store.getPublicArticles().filter(a => a.district === district.id);
 
   const formatTimeAgo = (dateStr: string) => {
@@ -79,7 +82,7 @@ export const DistrictPage: React.FC<DistrictPageProps> = ({
         <span className="text-xs font-bold text-stone-500 uppercase tracking-wider shrink-0">
           {language === 'hi' ? 'अन्य जिले:' : 'Other Districts:'}
         </span>
-        {BIHAR_DISTRICTS.slice(0, 10).map((d) => (
+        {districts.slice(0, 10).map((d) => (
           <button
             key={d.id}
             onClick={() => {

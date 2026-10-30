@@ -4,7 +4,7 @@
  */
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { BIHAR_DISTRICTS, TOPICS } from './constants';
+import { newsStore } from './newsStore';
 
 export type Language = 'en' | 'hi';
 
@@ -27,7 +27,6 @@ export const translations = {
     allDistricts: 'All 38 Districts of Bihar',
     searchPlaceholder: 'Search news, topics, districts...',
     searchButton: 'Search',
-    todayWeather: 'Gaya: 27°C Clear',
 
     // Primary Nav
     navHome: 'Home',
@@ -160,7 +159,6 @@ export const translations = {
     allDistricts: 'बिहार के सभी 38 जिले',
     searchPlaceholder: 'समाचार, विषय या जिला खोजें...',
     searchButton: 'खोजें',
-    todayWeather: 'गया: 27°C साफ मौसम',
 
     // Primary Nav
     navHome: 'होम',
@@ -322,13 +320,13 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   };
 
   const getDistrictName = (districtId: string): string => {
-    const dist = BIHAR_DISTRICTS.find(d => d.id === districtId);
+    const dist = newsStore.getDistricts().find(d => d.id === districtId);
     if (!dist) return districtId;
     return language === 'hi' ? dist.nameHi : dist.nameEn;
   };
 
   const getTopicName = (topicSlug: string): string => {
-    const topic = TOPICS.find(t => t.slug === topicSlug || t.id === topicSlug);
+    const topic = newsStore.getTopics().find(t => t.slug === topicSlug || t.id === topicSlug);
     if (!topic) return topicSlug;
     return language === 'hi' ? topic.nameHi : topic.nameEn;
   };

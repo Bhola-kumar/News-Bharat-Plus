@@ -13,7 +13,6 @@ import {
   FileText
 } from 'lucide-react';
 import { useNewsStore } from '../lib/newsStore';
-import { BIHAR_DISTRICTS } from '../lib/constants';
 import { AdBanner } from '../components/AdBanner';
 import { useLanguage } from '../lib/i18n';
 
@@ -27,9 +26,10 @@ export const HomePage: React.FC<HomePageProps> = ({ onSelectArticle, onNavigate 
   const { language, t, getDistrictName } = useLanguage();
   const selectedDistrictId = store.getSelectedDistrict();
   const publicArticles = store.getPublicArticles();
+  const districts = store.getDistricts();
   const [visibleAdditionalCount, setVisibleAdditionalCount] = useState(6);
 
-  const selectedDistrict = BIHAR_DISTRICTS.find(d => d.id === selectedDistrictId) || BIHAR_DISTRICTS[0];
+  const selectedDistrict = districts.find(d => d.id === selectedDistrictId) || districts[0];
 
   // 1. Lead Story + Supporting Top Stories
   const featuredArticles = publicArticles.filter(a => a.isFeatured);
@@ -320,19 +320,20 @@ export const HomePage: React.FC<HomePageProps> = ({ onSelectArticle, onNavigate 
           <div>
             <h3 className="text-xl font-black text-stone-900 flex items-center gap-2">
               <MapPin size={22} className="text-red-600" />
-              <span>{t('navBihar')} & {getDistrictName(selectedDistrict.id)} {language === 'hi' ? 'समाचार' : 'News'}</span>
+              <span>{t('navBihar')} & {getDistrictName(selectedDistrict?.id || '')} {language === 'hi' ? 'समाचार' : 'News'}</span>
             </h3>
             <p className="text-xs text-stone-500">
               {language === 'hi' 
-                ? `${getDistrictName(selectedDistrict.id)} और राज्यभर की प्रशासनिक व जनहित ख़बरें`
-                : `Grassroots updates and administrative developments from ${selectedDistrict.nameEn} and across the state`}
+                ? `${getDistrictName(selectedDistrict?.id || '')} और राज्यभर की प्रशासनिक व जनहित ख़बरें`
+                : `Grassroots updates and administrative developments from ${selectedDistrict?.nameEn || ''} and across the state`}
             </p>
           </div>
           <button
-            onClick={() => onNavigate(`/district/${selectedDistrict.id}`)}
+            onClick={() => selectedDistrict && onNavigate(`/district/${selectedDistrict.id}`)}
+            disabled={!selectedDistrict}
             className="text-xs font-bold text-red-700 hover:text-red-900 bg-white px-3 py-1.5 rounded border border-stone-300 shadow-2xs self-start sm:self-auto cursor-pointer"
           >
-            {getDistrictName(selectedDistrict.id)} {language === 'hi' ? 'ज़ोन समाचार →' : 'Zone News →'}
+            {getDistrictName(selectedDistrict?.id || '')} {language === 'hi' ? 'ज़ोन समाचार →' : 'Zone News →'}
           </button>
         </div>
 

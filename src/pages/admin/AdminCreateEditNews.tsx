@@ -17,7 +17,6 @@ import {
   ArrowLeft
 } from 'lucide-react';
 import { useNewsStore, parseVideoUrl } from '../../lib/newsStore';
-import { BIHAR_DISTRICTS, TOPICS } from '../../lib/constants';
 import { CoverageType, ArticleFormat, ArticleStatus } from '../../types/news';
 
 interface AdminCreateEditNewsProps {
@@ -32,6 +31,8 @@ export const AdminCreateEditNews: React.FC<AdminCreateEditNewsProps> = ({
   onSaveSuccess 
 }) => {
   const store = useNewsStore();
+  const districts = store.getDistricts();
+  const topics = store.getTopics();
   const existing = editArticleId ? store.getArticleById(editArticleId) : null;
 
   // Form Fields
@@ -39,25 +40,23 @@ export const AdminCreateEditNews: React.FC<AdminCreateEditNewsProps> = ({
   const [summary, setSummary] = useState(existing?.summary || '');
   const [body, setBody] = useState(existing?.body || '');
   const [keyPointsText, setKeyPointsText] = useState(existing?.keyPoints?.join('\n') || '');
-  const [coverImageUrl, setCoverImageUrl] = useState(
-    existing?.coverImageUrl || '/src/assets/images/bihar_patna_infrastructure_1793100968413.jpg'
-  );
+  const [coverImageUrl, setCoverImageUrl] = useState(existing?.coverImageUrl || '');
   const [coverImageCaption, setCoverImageCaption] = useState(existing?.coverImageCaption || '');
   const [coverImageCredit, setCoverImageCredit] = useState(existing?.coverImageCredit || '');
   const [coverage, setCoverage] = useState<CoverageType>(existing?.coverage || 'Regional');
-  const [district, setDistrict] = useState(existing?.district || 'patna');
-  const [selectedTopics, setSelectedTopics] = useState<string[]>(existing?.topics || ['politics']);
+  const [district, setDistrict] = useState(existing?.district || '');
+  const [selectedTopics, setSelectedTopics] = useState<string[]>(existing?.topics || []);
   const [format, setFormat] = useState<ArticleFormat>(existing?.format || 'Article');
-  const [authorName, setAuthorName] = useState(existing?.authorName || store.getCurrentUser()?.name || 'Editorial Desk');
-  const [authorRole, setAuthorRole] = useState(existing?.authorRole || 'Staff Reporter');
-  const [location, setLocation] = useState(existing?.location || 'Patna');
+  const [authorName, setAuthorName] = useState(existing?.authorName || store.getCurrentUser()?.name || '');
+  const [authorRole, setAuthorRole] = useState(existing?.authorRole || '');
+  const [location, setLocation] = useState(existing?.location || '');
   const [source, setSource] = useState(existing?.source || '');
   const [videoUrl, setVideoUrl] = useState(existing?.videoUrl || '');
   const [videoSummary, setVideoSummary] = useState(existing?.videoSummary || '');
   const [isFeatured, setIsFeatured] = useState(existing?.isFeatured || false);
   const [isBreaking, setIsBreaking] = useState(existing?.isBreaking || false);
   const [breakingExpiryHours, setBreakingExpiryHours] = useState('24');
-  const [status, setStatus] = useState<ArticleStatus>(existing?.status || 'published');
+  const [status, setStatus] = useState<ArticleStatus>(existing?.status || 'draft');
   const [scheduledAt, setScheduledAt] = useState(existing?.scheduledAt || '');
   const [seoTitle, setSeoTitle] = useState(existing?.seoTitle || '');
   const [seoDescription, setSeoDescription] = useState(existing?.seoDescription || '');
@@ -85,7 +84,7 @@ export const AdminCreateEditNews: React.FC<AdminCreateEditNewsProps> = ({
     );
   };
 
-  const handleSave = (targetStatus?: ArticleStatus) => {
+  const handleSave = async (targetStatus?: ArticleStatus) => {
     if (!headline.trim()) {
       alert('Please enter an article headline.');
       return;
@@ -106,7 +105,7 @@ export const AdminCreateEditNews: React.FC<AdminCreateEditNewsProps> = ({
       breakingExp = new Date(Date.now() + parseInt(breakingExpiryHours) * 3600000).toISOString();
     }
 
-    store.saveArticle({
+    const saved = await store.saveArticle({
       id: existing?.id,
       headline: headline.trim(),
       summary: summary.trim(),
@@ -118,7 +117,7 @@ export const AdminCreateEditNews: React.FC<AdminCreateEditNewsProps> = ({
       coverage,
       state: coverage === 'Regional' ? 'Bihar' : 'All India',
       district: coverage === 'Regional' ? district : undefined,
-      topics: selectedTopics.length > 0 ? selectedTopics : ['politics'],
+      topics: selectedTopics,
       format,
       authorName: authorName.trim(),
       authorRole: authorRole.trim(),
@@ -136,6 +135,7 @@ export const AdminCreateEditNews: React.FC<AdminCreateEditNewsProps> = ({
       seoDescription: seoDescription.trim() || summary.trim()
     });
 
+    if (!saved) return;
     setSaveSuccessMsg(true);
     setTimeout(() => {
       setSaveSuccessMsg(false);
@@ -416,7 +416,7 @@ export const AdminCreateEditNews: React.FC<AdminCreateEditNewsProps> = ({
                     onChange={(e) => setDistrict(e.target.value)}
                     className="w-full px-3 py-2 border border-stone-700 rounded-md bg-stone-950 text-white cursor-pointer"
                   >
-                    {BIHAR_DISTRICTS.map(d => (
+                    {districts.map(d => (
                       <option key={d.id} value={d.id}>{d.nameEn} ({d.nameHi})</option>
                     ))}
                   </select>
@@ -440,7 +440,7 @@ export const AdminCreateEditNews: React.FC<AdminCreateEditNewsProps> = ({
                 Topics & Categories
               </h3>
               <div className="flex flex-wrap gap-1.5">
-                {TOPICS.map(t => {
+                {topics.map(t => {
                   const isSelected = selectedTopics.includes(t.slug);
                   return (
                     <button

@@ -3,12 +3,14 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Save, CheckCircle2, Globe, Shield } from 'lucide-react';
 import { useNewsStore } from '../../lib/newsStore';
+import { useLanguage } from '../../lib/i18n';
 
 export const AdminSettings: React.FC = () => {
   const store = useNewsStore();
+  const { t } = useLanguage();
   const currentSettings = store.getSettings();
 
   const [siteNameHi, setSiteNameHi] = useState(currentSettings.siteNameHi);
@@ -26,56 +28,88 @@ export const AdminSettings: React.FC = () => {
   const [whatsapp, setWhatsapp] = useState(currentSettings.socialLinks.whatsapp);
 
   const [savedSuccess, setSavedSuccess] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState('');
 
-  const handleSave = (e: React.FormEvent) => {
+  useEffect(() => {
+    setSiteNameHi(currentSettings.siteNameHi);
+    setSiteNameEn(currentSettings.siteNameEn);
+    setTaglineHi(currentSettings.taglineHi);
+    setContactEmail(currentSettings.contactEmail);
+    setContactPhone(currentSettings.contactPhone);
+    setOfficeAddress(currentSettings.officeAddress);
+    setEditorName(currentSettings.editorName);
+    setGrievanceOfficer(currentSettings.grievanceOfficer);
+    setFacebook(currentSettings.socialLinks.facebook);
+    setTwitter(currentSettings.socialLinks.twitter);
+    setYoutube(currentSettings.socialLinks.youtube);
+    setWhatsapp(currentSettings.socialLinks.whatsapp);
+  }, [currentSettings]);
+
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    store.updateSettings({
-      siteNameHi,
-      siteNameEn,
-      taglineHi,
-      contactEmail,
-      contactPhone,
-      officeAddress,
-      editorName,
-      grievanceOfficer,
-      socialLinks: {
-        facebook,
-        twitter,
-        youtube,
-        whatsapp,
-        instagram: currentSettings.socialLinks.instagram
-      }
-    });
+    setIsSaving(true);
+    setSaveError('');
+    setSavedSuccess(false);
+    try {
+      const saved = await store.updateSettings({
+        siteNameHi,
+        siteNameEn,
+        taglineHi,
+        contactEmail,
+        contactPhone,
+        officeAddress,
+        editorName,
+        grievanceOfficer,
+        socialLinks: {
+          facebook,
+          twitter,
+          youtube,
+          whatsapp,
+          instagram: currentSettings.socialLinks.instagram
+        }
+      });
 
-    setSavedSuccess(true);
-    setTimeout(() => setSavedSuccess(false), 2500);
+      if (!saved) {
+        setSaveError(store.getDatabaseError() || 'Unable to save settings. Please try again.');
+        return;
+      }
+      setSavedSuccess(true);
+      setTimeout(() => setSavedSuccess(false), 2500);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
-    <div className="space-y-6 max-w-4xl">
-      <div className="bg-stone-900 border border-stone-800 rounded-xl p-5 shadow-lg">
-        <h1 className="text-xl font-bold text-white font-serif">
+    <div className="w-full max-w-none space-y-6">
+      <div className="rounded-2xl border border-stone-800 bg-stone-900 p-5 shadow-lg sm:p-6">
+        <h1 className="font-serif text-xl font-bold text-white sm:text-2xl">
           Portal Settings & Configuration
         </h1>
         <p className="text-xs text-stone-400 mt-0.5">
           Branding, contact details, grievance officer, social profiles, and default portal metadata.
         </p>
+        <p className="mt-2 text-[11px] text-stone-500">
+          Saved values are loaded from Supabase. Empty fields show the current site value as a placeholder; enter a value and save to customize it.
+        </p>
       </div>
 
-      <form onSubmit={handleSave} className="bg-stone-900 border border-stone-800 rounded-xl p-6 shadow-lg space-y-6 text-xs text-stone-200">
+      <form onSubmit={handleSave} className="w-full space-y-8 rounded-2xl border border-stone-800 bg-stone-900 p-5 text-xs text-stone-200 shadow-lg sm:p-8">
         <div>
-          <h2 className="text-sm font-bold text-white font-serif border-b border-stone-800 pb-2 mb-3 flex items-center gap-2">
+          <h2 className="mb-4 flex items-center gap-2 border-b border-stone-800 pb-3 font-serif text-base font-bold text-white">
             <Globe size={16} className="text-red-500" />
             <span>Brand & Identity</span>
           </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
             <div>
               <label className="block font-semibold text-stone-300 mb-1">Portal Name (Hindi)</label>
               <input
                 type="text"
                 value={siteNameHi}
                 onChange={(e) => setSiteNameHi(e.target.value)}
-                className="w-full px-3 py-2 bg-stone-950 border border-stone-700 rounded-lg font-bold text-white"
+                placeholder={t('siteHindiName')}
+                className="w-full rounded-lg border border-stone-700 bg-stone-950 px-3 py-2.5 font-bold text-white placeholder:text-stone-500 focus:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-500/30"
               />
             </div>
             <div>
@@ -84,7 +118,8 @@ export const AdminSettings: React.FC = () => {
                 type="text"
                 value={siteNameEn}
                 onChange={(e) => setSiteNameEn(e.target.value)}
-                className="w-full px-3 py-2 bg-stone-950 border border-stone-700 rounded-lg font-bold text-white"
+                placeholder={t('siteName')}
+                className="w-full rounded-lg border border-stone-700 bg-stone-950 px-3 py-2.5 font-bold text-white placeholder:text-stone-500 focus:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-500/30"
               />
             </div>
             <div className="sm:col-span-2">
@@ -93,25 +128,27 @@ export const AdminSettings: React.FC = () => {
                 type="text"
                 value={taglineHi}
                 onChange={(e) => setTaglineHi(e.target.value)}
-                className="w-full px-3 py-2 bg-stone-950 border border-stone-700 rounded-lg text-white"
+                placeholder={t('tagline')}
+                className="w-full rounded-lg border border-stone-700 bg-stone-950 px-3 py-2.5 text-white placeholder:text-stone-500 focus:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-500/30"
               />
             </div>
           </div>
         </div>
 
         <div>
-          <h2 className="text-sm font-bold text-white font-serif border-b border-stone-800 pb-2 mb-3 flex items-center gap-2">
+          <h2 className="mb-4 flex items-center gap-2 border-b border-stone-800 pb-3 font-serif text-base font-bold text-white">
             <Shield size={16} className="text-red-500" />
             <span>Editorial & Grievance Governance</span>
           </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
             <div>
               <label className="block font-semibold text-stone-300 mb-1">Editor-in-Chief Name</label>
               <input
                 type="text"
                 value={editorName}
                 onChange={(e) => setEditorName(e.target.value)}
-                className="w-full px-3 py-2 bg-stone-950 border border-stone-700 rounded-lg text-white"
+                placeholder="Editor-in-Chief name"
+                className="w-full rounded-lg border border-stone-700 bg-stone-950 px-3 py-2.5 text-white placeholder:text-stone-500 focus:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-500/30"
               />
             </div>
             <div>
@@ -120,7 +157,8 @@ export const AdminSettings: React.FC = () => {
                 type="text"
                 value={grievanceOfficer}
                 onChange={(e) => setGrievanceOfficer(e.target.value)}
-                className="w-full px-3 py-2 bg-stone-950 border border-stone-700 rounded-lg text-white"
+                placeholder="Grievance officer name"
+                className="w-full rounded-lg border border-stone-700 bg-stone-950 px-3 py-2.5 text-white placeholder:text-stone-500 focus:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-500/30"
               />
             </div>
             <div>
@@ -129,7 +167,8 @@ export const AdminSettings: React.FC = () => {
                 type="email"
                 value={contactEmail}
                 onChange={(e) => setContactEmail(e.target.value)}
-                className="w-full px-3 py-2 bg-stone-950 border border-stone-700 rounded-lg text-white"
+                placeholder="newsdesk@example.com"
+                className="w-full rounded-lg border border-stone-700 bg-stone-950 px-3 py-2.5 text-white placeholder:text-stone-500 focus:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-500/30"
               />
             </div>
             <div>
@@ -138,7 +177,8 @@ export const AdminSettings: React.FC = () => {
                 type="text"
                 value={contactPhone}
                 onChange={(e) => setContactPhone(e.target.value)}
-                className="w-full px-3 py-2 bg-stone-950 border border-stone-700 rounded-lg text-white"
+                placeholder="+91 phone number"
+                className="w-full rounded-lg border border-stone-700 bg-stone-950 px-3 py-2.5 text-white placeholder:text-stone-500 focus:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-500/30"
               />
             </div>
             <div className="sm:col-span-2">
@@ -147,24 +187,26 @@ export const AdminSettings: React.FC = () => {
                 type="text"
                 value={officeAddress}
                 onChange={(e) => setOfficeAddress(e.target.value)}
-                className="w-full px-3 py-2 bg-stone-950 border border-stone-700 rounded-lg text-white"
+                placeholder="Bureau address"
+                className="w-full rounded-lg border border-stone-700 bg-stone-950 px-3 py-2.5 text-white placeholder:text-stone-500 focus:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-500/30"
               />
             </div>
           </div>
         </div>
 
         <div>
-          <h2 className="text-sm font-bold text-white font-serif border-b border-stone-800 pb-2 mb-3">
+          <h2 className="mb-4 border-b border-stone-800 pb-3 font-serif text-base font-bold text-white">
             Social & Distribution Links
           </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
             <div>
               <label className="block font-semibold text-stone-300 mb-1">Facebook Page URL</label>
               <input
                 type="text"
                 value={facebook}
                 onChange={(e) => setFacebook(e.target.value)}
-                className="w-full px-3 py-2 bg-stone-950 border border-stone-700 rounded-lg text-white"
+                placeholder="https://facebook.com/..."
+                className="w-full rounded-lg border border-stone-700 bg-stone-950 px-3 py-2.5 text-white placeholder:text-stone-500 focus:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-500/30"
               />
             </div>
             <div>
@@ -173,7 +215,8 @@ export const AdminSettings: React.FC = () => {
                 type="text"
                 value={twitter}
                 onChange={(e) => setTwitter(e.target.value)}
-                className="w-full px-3 py-2 bg-stone-950 border border-stone-700 rounded-lg text-white"
+                placeholder="https://x.com/..."
+                className="w-full rounded-lg border border-stone-700 bg-stone-950 px-3 py-2.5 text-white placeholder:text-stone-500 focus:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-500/30"
               />
             </div>
             <div>
@@ -182,7 +225,8 @@ export const AdminSettings: React.FC = () => {
                 type="text"
                 value={youtube}
                 onChange={(e) => setYoutube(e.target.value)}
-                className="w-full px-3 py-2 bg-stone-950 border border-stone-700 rounded-lg text-white"
+                placeholder="https://youtube.com/..."
+                className="w-full rounded-lg border border-stone-700 bg-stone-950 px-3 py-2.5 text-white placeholder:text-stone-500 focus:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-500/30"
               />
             </div>
             <div>
@@ -191,25 +235,29 @@ export const AdminSettings: React.FC = () => {
                 type="text"
                 value={whatsapp}
                 onChange={(e) => setWhatsapp(e.target.value)}
-                className="w-full px-3 py-2 bg-stone-950 border border-stone-700 rounded-lg text-white"
+                placeholder="https://whatsapp.com/channel/..."
+                className="w-full rounded-lg border border-stone-700 bg-stone-950 px-3 py-2.5 text-white placeholder:text-stone-500 focus:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-500/30"
               />
             </div>
           </div>
         </div>
 
-        <div className="pt-3 border-t border-stone-800 flex items-center justify-between">
+        <div className="flex flex-col-reverse items-stretch justify-between gap-4 border-t border-stone-800 pt-5 sm:flex-row sm:items-center">
           {savedSuccess ? (
-            <span className="text-xs font-bold text-emerald-400 flex items-center gap-1.5">
+            <span role="status" className="flex items-center gap-1.5 text-xs font-bold text-emerald-400">
               <CheckCircle2 size={16} /> Configuration saved!
             </span>
-          ) : <span />}
+          ) : saveError
+            ? <span role="alert" className="text-xs font-semibold text-red-400">{saveError}</span>
+            : <span />}
 
           <button
             type="submit"
-            className="px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold text-xs flex items-center gap-1.5 cursor-pointer shadow-md transition-colors"
+            disabled={isSaving}
+            className="flex items-center justify-center gap-1.5 rounded-xl bg-red-600 px-5 py-2.5 text-xs font-bold text-white shadow-md transition-colors hover:bg-red-700 disabled:cursor-wait disabled:opacity-60 sm:min-w-48"
           >
             <Save size={15} />
-            <span>Save Configuration</span>
+            <span>{isSaving ? 'Saving…' : 'Save Configuration'}</span>
           </button>
         </div>
       </form>

@@ -13,12 +13,12 @@ import {
   Calendar 
 } from 'lucide-react';
 import { useNewsStore } from '../../lib/newsStore';
-import { BIHAR_DISTRICTS } from '../../lib/constants';
 import { AdCampaign, AdPlacementSlot } from '../../types/news';
 
 export const AdminAdManager: React.FC = () => {
   const store = useNewsStore();
   const ads = store.getAllAds();
+  const districts = store.getDistricts();
 
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingAd, setEditingAd] = useState<AdCampaign | null>(null);
@@ -39,9 +39,9 @@ export const AdminAdManager: React.FC = () => {
     setEditingAd(null);
     setTitle('');
     setAdvertiserName('');
-    setDesktopBannerUrl('https://placehold.co/970x120/1e293b/f8fafc?text=New+Advertisement+Banner');
-    setMobileBannerUrl('https://placehold.co/600x160/1e293b/f8fafc?text=Mobile+Ad+Creative');
-    setDestinationUrl('https://example.com');
+    setDesktopBannerUrl('');
+    setMobileBannerUrl('');
+    setDestinationUrl('');
     setPlacements(['between_sections']);
     setTargetDistricts([]);
     setStartDate(new Date().toISOString().substring(0, 10));
@@ -73,14 +73,14 @@ export const AdminAdManager: React.FC = () => {
     );
   };
 
-  const handleSave = (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim() || !advertiserName.trim()) {
       alert('Please fill out campaign title and advertiser name.');
       return;
     }
 
-    store.saveAd({
+    const saved = await store.saveAd({
       id: editingAd?.id,
       title: title.trim(),
       advertiserName: advertiserName.trim(),
@@ -95,7 +95,7 @@ export const AdminAdManager: React.FC = () => {
       isActive
     });
 
-    setIsFormOpen(false);
+    if (saved) setIsFormOpen(false);
   };
 
   return (

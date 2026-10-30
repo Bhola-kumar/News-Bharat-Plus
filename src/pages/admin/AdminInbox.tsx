@@ -33,9 +33,10 @@ export const AdminInbox: React.FC = () => {
     setSavedFeedback(false);
   };
 
-  const handleUpdate = () => {
+  const handleUpdate = async () => {
     if (!selectedSub) return;
-    store.updateSubmissionStatus(selectedSub.id, statusVal, staffNote);
+    const saved = await store.updateSubmissionStatus(selectedSub.id, statusVal, staffNote);
+    if (!saved) return;
     setSelectedSub({
       ...selectedSub,
       status: statusVal,
