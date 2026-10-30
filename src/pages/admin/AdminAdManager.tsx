@@ -3,14 +3,17 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { 
   Megaphone, 
   Plus, 
   Edit3, 
   Trash2, 
   ExternalLink, 
-  Calendar 
+  Calendar,
+  Upload,
+  FileImage,
+  X
 } from 'lucide-react';
 import { useNewsStore } from '../../lib/newsStore';
 import { AdCampaign, AdPlacementSlot } from '../../types/news';
@@ -19,6 +22,12 @@ export const AdminAdManager: React.FC = () => {
   const store = useNewsStore();
   const ads = store.getAllAds();
   const districts = store.getDistricts();
+  const mediaAssets = store.getMedia();
+
+  const desktopFileInputRef = useRef<HTMLInputElement>(null);
+  const mobileFileInputRef = useRef<HTMLInputElement>(null);
+  const [showMediaModal, setShowMediaModal] = useState<'desktop' | 'mobile' | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
 
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingAd, setEditingAd] = useState<AdCampaign | null>(null);
@@ -34,6 +43,39 @@ export const AdminAdManager: React.FC = () => {
   const [endDate, setEndDate] = useState('');
   const [priority, setPriority] = useState(1);
   const [isActive, setIsActive] = useState(true);
+
+  const handleDesktopUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setIsUploading(true);
+    const reader = new FileReader();
+    reader.onload = async (evt) => {
+      const dataUrl = evt.target?.result as string;
+      if (dataUrl) {
+        setDesktopBannerUrl(dataUrl);
+        if (!mobileBannerUrl) setMobileBannerUrl(dataUrl);
+        await store.uploadMedia(file.name, dataUrl, file.size);
+      }
+      setIsUploading(false);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleMobileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setIsUploading(true);
+    const reader = new FileReader();
+    reader.onload = async (evt) => {
+      const dataUrl = evt.target?.result as string;
+      if (dataUrl) {
+        setMobileBannerUrl(dataUrl);
+        await store.uploadMedia(file.name, dataUrl, file.size);
+      }
+      setIsUploading(false);
+    };
+    reader.readAsDataURL(file);
+  };
 
   const openCreateForm = () => {
     setEditingAd(null);
@@ -255,25 +297,163 @@ export const AdminAdManager: React.FC = () => {
                 </div>
               </div>
 
-              <div>
-                <label className="block font-bold text-stone-700 mb-1">Desktop Banner Image URL *</label>
+              {/* Desktop Banner Field */}
+              <div className="p-3.5 bg-stone-50 border border-stone-200 rounded-xl space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="font-bold text-stone-800 text-xs flex items-center gap-1.5">
+                    <FileImage size={15} className="text-red-600" />
+                    <span>Desktop Banner Image *</span>
+                  </label>
+                  {desktopBannerUrl && (
+                    <button
+                      type="button"
+                      onClick={() => setDesktopBannerUrl('')}
+                      className="text-[11px] text-red-600 hover:underline flex items-center gap-0.5 cursor-pointer font-medium"
+                    >
+                      <Trash2 size={12} />
+                      <span>Remove</span>
+                    </button>
+                  )}
+                </div>
+
+                <input
+                  type="file"
+                  ref={desktopFileInputRef}
+                  accept="image/*"
+                  onChange={handleDesktopUpload}
+                  className="hidden"
+                />
+
+                {desktopBannerUrl ? (
+                  <div className="relative aspect-16/5 max-h-24 bg-stone-900 rounded-lg overflow-hidden border border-stone-300 group">
+                    <img src={desktopBannerUrl} alt="Desktop Preview" className="w-full h-full object-cover" />
+                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => desktopFileInputRef.current?.click()}
+                        className="px-2.5 py-1 bg-red-600 text-white rounded text-xs font-bold flex items-center gap-1 cursor-pointer"
+                      >
+                        <Upload size={12} />
+                        <span>Change</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setShowMediaModal('desktop')}
+                        className="px-2.5 py-1 bg-stone-800 text-white rounded text-xs font-bold flex items-center gap-1 cursor-pointer"
+                      >
+                        <FileImage size={12} />
+                        <span>Library</span>
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => desktopFileInputRef.current?.click()}
+                      className="p-2.5 bg-white hover:bg-stone-100 border border-dashed border-stone-300 rounded-lg text-stone-700 text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
+                    >
+                      <Upload size={15} className="text-red-600" />
+                      <span>{isUploading ? 'Uploading...' : 'Upload from Device / Gallery'}</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setShowMediaModal('desktop')}
+                      className="p-2.5 bg-white hover:bg-stone-100 border border-stone-300 rounded-lg text-stone-700 text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
+                    >
+                      <FileImage size={15} className="text-amber-600" />
+                      <span>Select from Library</span>
+                    </button>
+                  </div>
+                )}
+
                 <input
                   type="text"
                   required
                   value={desktopBannerUrl}
                   onChange={(e) => setDesktopBannerUrl(e.target.value)}
-                  className="w-full px-3 py-2 border border-stone-300 rounded-lg font-mono text-[11px]"
+                  placeholder="Or paste Desktop Banner Image URL..."
+                  className="w-full px-3 py-1.5 text-xs border border-stone-300 rounded-lg font-mono text-[11px] bg-white"
                 />
               </div>
 
-              <div>
-                <label className="block font-bold text-stone-700 mb-1">Mobile Banner Image URL *</label>
+              {/* Mobile Banner Field */}
+              <div className="p-3.5 bg-stone-50 border border-stone-200 rounded-xl space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="font-bold text-stone-800 text-xs flex items-center gap-1.5">
+                    <FileImage size={15} className="text-red-600" />
+                    <span>Mobile Banner Image *</span>
+                  </label>
+                  {mobileBannerUrl && (
+                    <button
+                      type="button"
+                      onClick={() => setMobileBannerUrl('')}
+                      className="text-[11px] text-red-600 hover:underline flex items-center gap-0.5 cursor-pointer font-medium"
+                    >
+                      <Trash2 size={12} />
+                      <span>Remove</span>
+                    </button>
+                  )}
+                </div>
+
+                <input
+                  type="file"
+                  ref={mobileFileInputRef}
+                  accept="image/*"
+                  onChange={handleMobileUpload}
+                  className="hidden"
+                />
+
+                {mobileBannerUrl ? (
+                  <div className="relative aspect-16/5 max-h-24 bg-stone-900 rounded-lg overflow-hidden border border-stone-300 group">
+                    <img src={mobileBannerUrl} alt="Mobile Preview" className="w-full h-full object-cover" />
+                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => mobileFileInputRef.current?.click()}
+                        className="px-2.5 py-1 bg-red-600 text-white rounded text-xs font-bold flex items-center gap-1 cursor-pointer"
+                      >
+                        <Upload size={12} />
+                        <span>Change</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setShowMediaModal('mobile')}
+                        className="px-2.5 py-1 bg-stone-800 text-white rounded text-xs font-bold flex items-center gap-1 cursor-pointer"
+                      >
+                        <FileImage size={12} />
+                        <span>Library</span>
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => mobileFileInputRef.current?.click()}
+                      className="p-2.5 bg-white hover:bg-stone-100 border border-dashed border-stone-300 rounded-lg text-stone-700 text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
+                    >
+                      <Upload size={15} className="text-red-600" />
+                      <span>{isUploading ? 'Uploading...' : 'Upload from Device / Gallery'}</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setShowMediaModal('mobile')}
+                      className="p-2.5 bg-white hover:bg-stone-100 border border-stone-300 rounded-lg text-stone-700 text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
+                    >
+                      <FileImage size={15} className="text-amber-600" />
+                      <span>Select from Library</span>
+                    </button>
+                  </div>
+                )}
+
                 <input
                   type="text"
                   required
                   value={mobileBannerUrl}
                   onChange={(e) => setMobileBannerUrl(e.target.value)}
-                  className="w-full px-3 py-2 border border-stone-300 rounded-lg font-mono text-[11px]"
+                  placeholder="Or paste Mobile Banner Image URL..."
+                  className="w-full px-3 py-1.5 text-xs border border-stone-300 rounded-lg font-mono text-[11px] bg-white"
                 />
               </div>
 
@@ -361,6 +541,84 @@ export const AdminAdManager: React.FC = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+      {/* Media Library Selection Modal for Ads */}
+      {showMediaModal && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-150">
+          <div className="bg-stone-900 border border-stone-800 rounded-2xl w-full max-w-3xl max-h-[85vh] flex flex-col overflow-hidden shadow-2xl">
+            <div className="p-4 border-b border-stone-800 flex items-center justify-between bg-stone-950">
+              <h3 className="font-bold text-white text-sm flex items-center gap-2 font-serif">
+                <FileImage size={18} className="text-red-500" />
+                <span>Select Banner Image for {showMediaModal === 'desktop' ? 'Desktop' : 'Mobile'} Ad</span>
+              </h3>
+              <button
+                type="button"
+                onClick={() => setShowMediaModal(null)}
+                className="p-1.5 text-stone-400 hover:text-white rounded-lg hover:bg-stone-800 cursor-pointer transition-colors"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-4">
+              {mediaAssets.length === 0 ? (
+                <div className="text-center py-12 text-stone-400 text-xs space-y-2">
+                  <FileImage size={32} className="mx-auto text-stone-600" />
+                  <p>No images saved in Media Library yet.</p>
+                  <p className="text-stone-500">Upload a banner image directly from your gallery/device!</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                  {mediaAssets.map((asset) => (
+                    <div
+                      key={asset.id}
+                      onClick={() => {
+                        if (showMediaModal === 'desktop') {
+                          setDesktopBannerUrl(asset.url);
+                          if (!mobileBannerUrl) setMobileBannerUrl(asset.url);
+                        } else {
+                          setMobileBannerUrl(asset.url);
+                        }
+                        setShowMediaModal(null);
+                      }}
+                      className="group relative aspect-16/9 bg-stone-950 border border-stone-800 rounded-xl overflow-hidden cursor-pointer hover:border-red-500 transition-colors shadow-xs"
+                    >
+                      <img src={asset.url} alt={asset.filename} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+                      <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-xs font-bold">
+                        Select Banner
+                      </div>
+                      <div className="absolute bottom-1 left-1 right-1 text-[9px] text-stone-300 truncate bg-black/80 px-1.5 py-0.5 rounded">
+                        {asset.filename}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="p-3 border-t border-stone-800 flex items-center justify-between bg-stone-950">
+              <button
+                type="button"
+                onClick={() => {
+                  const targetRef = showMediaModal === 'desktop' ? desktopFileInputRef : mobileFileInputRef;
+                  setShowMediaModal(null);
+                  targetRef.current?.click();
+                }}
+                className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-sm transition-colors"
+              >
+                <Upload size={14} />
+                <span>Upload New Banner from Device</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowMediaModal(null)}
+                className="px-3.5 py-1.5 bg-stone-800 hover:bg-stone-700 text-stone-300 rounded-lg text-xs font-bold cursor-pointer transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
           </div>
         </div>
       )}

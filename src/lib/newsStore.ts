@@ -587,7 +587,7 @@ class NewsStore {
     this.realtimeChannel = channel.subscribe(status => {
       this.realtimeSyncActive = status === 'SUBSCRIBED';
       if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
-        this.databaseError = 'Supabase Realtime is unavailable. Database writes still work; refresh to load remote changes.';
+        console.warn('Supabase Realtime channel status:', status);
       }
       this.notify();
     });
