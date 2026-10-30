@@ -13,8 +13,20 @@ export interface GoogleUserPayload {
   email: string;
   name: string;
   idToken?: string;
+  nonce?: string;
   picture?: string;
   sub?: string;
+}
+
+async function createNoncePair(): Promise<{ nonce: string; hashedNonce: string }> {
+  if (!globalThis.crypto?.subtle) {
+    throw new Error('Secure browser cryptography is unavailable. Use HTTPS to sign in with Google.');
+  }
+  const bytes = crypto.getRandomValues(new Uint8Array(32));
+  const nonce = btoa(String.fromCharCode(...bytes));
+  const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(nonce));
+  const hashedNonce = Array.from(new Uint8Array(digest), byte => byte.toString(16).padStart(2, '0')).join('');
+  return { nonce, hashedNonce };
 }
 
 /**
@@ -47,28 +59,26 @@ export function getGoogleClientId(): string {
 /**
  * Initializes Google One Tap / GIS button if Client ID is configured
  */
-export function initializeGoogleIdentity(onSuccess: (user: GoogleUserPayload) => void) {
+export async function initializeGoogleIdentity(onSuccess: (user: GoogleUserPayload) => void): Promise<boolean> {
   const clientId = getGoogleClientId();
   if (!clientId || typeof window === 'undefined' || !window.google?.accounts?.id) {
     return false;
   }
 
-  try {
-    window.google.accounts.id.initialize({
-      client_id: clientId,
-      callback: (response: any) => {
-        if (response.credential) {
-          const payload = parseJwtPayload(response.credential);
-          if (payload) {
-            onSuccess({ ...payload, idToken: response.credential });
-          }
+  const { nonce, hashedNonce } = await createNoncePair();
+  window.google.accounts.id.initialize({
+    client_id: clientId,
+    nonce: hashedNonce,
+    callback: (response: any) => {
+      if (response.credential) {
+        const payload = parseJwtPayload(response.credential);
+        if (payload) {
+          onSuccess({ ...payload, idToken: response.credential, nonce });
         }
-      },
-      auto_select: false,
-      cancel_on_tap_outside: true
-    });
-    return true;
-  } catch {
-    return false;
-  }
+      }
+    },
+    auto_select: false,
+    cancel_on_tap_outside: true
+  });
+  return true;
 }

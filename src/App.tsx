@@ -129,33 +129,38 @@ export default function App() {
   const isStaff = currentUser?.role === 'admin';
   const isAdminView = currentPath.startsWith('/admin');
 
-  const processAdminGoogleSignIn = () => {
+  const processAdminGoogleSignIn = async () => {
     setAdminAuthError(null);
     if (!clientId || !window.google?.accounts?.id) {
       setAdminAuthError('Google OAuth is not configured. Configure Google Identity and Supabase Auth before signing in.');
       return;
     }
     setAdminIsSigningIn(true);
-    const initialized = initializeGoogleIdentity(user => {
-      if (!user.idToken) {
-        setAdminIsSigningIn(false);
-        setAdminAuthError('Google did not return an ID token.');
-        return;
-      }
-      void store.signInWithGoogleToken(user.idToken).then(account => {
-        setAdminIsSigningIn(false);
-        if (!account) {
-          setAdminAuthError(store.getDatabaseError() || 'Authentication failed.');
-        } else if (account.role !== 'admin') {
-          setAdminAuthError('This authenticated account has no admin role in its Supabase profile.');
+    try {
+      const initialized = await initializeGoogleIdentity(user => {
+        if (!user.idToken || !user.nonce) {
+          setAdminIsSigningIn(false);
+          setAdminAuthError('Google did not return the ID token and nonce needed for secure sign-in.');
+          return;
         }
+        void store.signInWithGoogleToken(user.idToken, user.nonce).then(account => {
+          setAdminIsSigningIn(false);
+          if (!account) {
+            setAdminAuthError(store.getDatabaseError() || 'Authentication failed.');
+          } else if (account.role !== 'admin') {
+            setAdminAuthError('This authenticated account has no admin role in its Supabase profile.');
+          }
+        });
       });
-    });
-    if (initialized) {
-      window.google.accounts.id.prompt();
-    } else {
+      if (initialized) {
+        window.google.accounts.id.prompt();
+      } else {
+        setAdminIsSigningIn(false);
+        setAdminAuthError('Google Identity could not be initialized.');
+      }
+    } catch (error) {
       setAdminIsSigningIn(false);
-      setAdminAuthError('Google Identity could not be initialized.');
+      setAdminAuthError(error instanceof Error ? error.message : 'Google Identity could not be initialized.');
     }
   };
 

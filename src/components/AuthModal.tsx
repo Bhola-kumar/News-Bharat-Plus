@@ -31,11 +31,12 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, title, me
     if (!isOpen || !clientId) return;
     let timer: number | undefined;
     let attempts = 0;
-    const setupGoogleSignIn = () => {
+    let cancelled = false;
+    const setupGoogleSignIn = async () => {
       const googleId = window.google?.accounts?.id;
       if (!googleId) {
         if (attempts >= 20) {
-          setAuthError('Google Identity Services did not load. Check the browser network policy and retry.');
+          if (!cancelled) setAuthError('Google Identity Services did not load. Check the browser network policy and retry.');
           return;
         }
         attempts += 1;
@@ -43,46 +44,58 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, title, me
         return;
       }
 
-      const initialized = initializeGoogleIdentity(user => {
-        setIsProcessing(true);
-        setAuthError('');
-        if (!user.idToken) {
-          setIsProcessing(false);
-          setAuthError('Google did not return an ID token.');
-          return;
-        }
-        void store.signInWithGoogleToken(user.idToken).then(account => {
-          setIsProcessing(false);
-          if (!account) {
-            setAuthError(store.getDatabaseError() || 'Google sign-in failed.');
+      try {
+        const initialized = await initializeGoogleIdentity(user => {
+          if (cancelled) return;
+          setIsProcessing(true);
+          setAuthError('');
+          if (!user.idToken || !user.nonce) {
+            setIsProcessing(false);
+            setAuthError('Google did not return the ID token and nonce needed for secure sign-in.');
             return;
           }
-          setSignedInEmail(account.email);
-          window.setTimeout(() => {
-            setSignedInEmail(null);
-            onClose();
-            onSuccess?.();
-          }, 600);
+          void store.signInWithGoogleToken(user.idToken, user.nonce).then(account => {
+            if (cancelled) return;
+            setIsProcessing(false);
+            if (!account) {
+              setAuthError(store.getDatabaseError() || 'Google sign-in failed.');
+              return;
+            }
+            setSignedInEmail(account.email);
+            window.setTimeout(() => {
+              setSignedInEmail(null);
+              onClose();
+              onSuccess?.();
+            }, 600);
+          });
         });
-      });
-      if (!initialized) {
-        setAuthError('Google Identity could not be initialized.');
-        return;
+        if (!initialized) {
+          if (!cancelled) setAuthError('Google Identity could not be initialized.');
+          return;
+        }
+        if (cancelled) return;
+        setIsGoogleReady(true);
+        if (googleBtnRef.current) googleId.renderButton(googleBtnRef.current, {
+          theme: 'outline',
+          size: 'large',
+          width: 340,
+          text: 'continue_with',
+          shape: 'rectangular',
+          logo_alignment: 'left'
+        });
+      } catch (error) {
+        if (!cancelled) {
+          setAuthError(error instanceof Error ? error.message : 'Google Identity could not be initialized.');
+        }
       }
-      setIsGoogleReady(true);
-      if (googleBtnRef.current) googleId.renderButton(googleBtnRef.current, {
-        theme: 'outline',
-        size: 'large',
-        width: 340,
-        text: 'continue_with',
-        shape: 'rectangular',
-        logo_alignment: 'left'
-      });
     };
     setIsGoogleReady(false);
     setAuthError('');
     setupGoogleSignIn();
-    return () => { if (timer) window.clearTimeout(timer); };
+    return () => {
+      cancelled = true;
+      if (timer) window.clearTimeout(timer);
+    };
   }, [isOpen, clientId, store, onClose, onSuccess]);
 
   if (!isOpen) return null;

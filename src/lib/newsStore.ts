@@ -672,9 +672,13 @@ class NewsStore {
 
   public getCurrentUser() { return this.currentUser; }
 
-  public async signInWithGoogleToken(idToken: string): Promise<AuthUser | null> {
+  public async signInWithGoogleToken(idToken: string, nonce: string): Promise<AuthUser | null> {
     return this.run<AuthUser | null>(async () => {
-      const { data, error } = await this.client.auth.signInWithIdToken({ provider: 'google', token: idToken });
+      const { data, error } = await this.client.auth.signInWithIdToken({
+        provider: 'google',
+        token: idToken,
+        nonce
+      });
       if (error) {
         if (error.message.includes('issuer') && error.message.includes('not enabled')) {
           throw new Error(
