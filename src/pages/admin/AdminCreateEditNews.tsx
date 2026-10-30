@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   Save, 
   Eye, 
@@ -14,7 +14,12 @@ import {
   AlertCircle,
   Smartphone,
   Monitor,
-  ArrowLeft
+  ArrowLeft,
+  Upload,
+  FileImage,
+  X,
+  Trash2,
+  Plus
 } from 'lucide-react';
 import { useNewsStore, parseVideoUrl } from '../../lib/newsStore';
 import { CoverageType, ArticleFormat, ArticleStatus } from '../../types/news';
@@ -34,6 +39,7 @@ export const AdminCreateEditNews: React.FC<AdminCreateEditNewsProps> = ({
   const districts = store.getDistricts();
   const topics = store.getTopics();
   const existing = editArticleId ? store.getArticleById(editArticleId) : null;
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Form Fields
   const [headline, setHeadline] = useState(existing?.headline || '');
@@ -47,16 +53,16 @@ export const AdminCreateEditNews: React.FC<AdminCreateEditNewsProps> = ({
   const [district, setDistrict] = useState(existing?.district || '');
   const [selectedTopics, setSelectedTopics] = useState<string[]>(existing?.topics || []);
   const [format, setFormat] = useState<ArticleFormat>(existing?.format || 'Article');
-  const [authorName, setAuthorName] = useState(existing?.authorName || store.getCurrentUser()?.name || '');
-  const [authorRole, setAuthorRole] = useState(existing?.authorRole || '');
-  const [location, setLocation] = useState(existing?.location || '');
+  const [authorName, setAuthorName] = useState(existing?.authorName || store.getCurrentUser()?.name || 'Editorial Desk');
+  const [authorRole, setAuthorRole] = useState(existing?.authorRole || 'Editor');
+  const [location, setLocation] = useState(existing?.location || 'Patna');
   const [source, setSource] = useState(existing?.source || '');
   const [videoUrl, setVideoUrl] = useState(existing?.videoUrl || '');
   const [videoSummary, setVideoSummary] = useState(existing?.videoSummary || '');
   const [isFeatured, setIsFeatured] = useState(existing?.isFeatured || false);
   const [isBreaking, setIsBreaking] = useState(existing?.isBreaking || false);
   const [breakingExpiryHours, setBreakingExpiryHours] = useState('24');
-  const [status, setStatus] = useState<ArticleStatus>(existing?.status || 'draft');
+  const [status, setStatus] = useState<ArticleStatus>(existing?.status || 'published');
   const [scheduledAt, setScheduledAt] = useState(existing?.scheduledAt || '');
   const [seoTitle, setSeoTitle] = useState(existing?.seoTitle || '');
   const [seoDescription, setSeoDescription] = useState(existing?.seoDescription || '');
@@ -66,8 +72,94 @@ export const AdminCreateEditNews: React.FC<AdminCreateEditNewsProps> = ({
   const [previewDevice, setPreviewDevice] = useState<'desktop' | 'mobile'>('desktop');
   const [autoSavedTime, setAutoSavedTime] = useState<string | null>(null);
   const [saveSuccessMsg, setSaveSuccessMsg] = useState(false);
+  const [showMediaPicker, setShowMediaPicker] = useState(false);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
 
   const videoParsed = videoUrl ? parseVideoUrl(videoUrl) : null;
+  const mediaAssets = store.getMedia();
+
+  // Sync form state whenever editArticleId changes or article loads
+  useEffect(() => {
+    if (editArticleId) {
+      const art = store.getArticleById(editArticleId);
+      if (art) {
+        setHeadline(art.headline || '');
+        setSummary(art.summary || '');
+        setBody(art.body || '');
+        setKeyPointsText(art.keyPoints?.join('\n') || '');
+        setCoverImageUrl(art.coverImageUrl || '');
+        setCoverImageCaption(art.coverImageCaption || '');
+        setCoverImageCredit(art.coverImageCredit || '');
+        setCoverage(art.coverage || 'Regional');
+        setDistrict(art.district || '');
+        setSelectedTopics(art.topics || []);
+        setFormat(art.format || 'Article');
+        setAuthorName(art.authorName || store.getCurrentUser()?.name || 'Editorial Desk');
+        setAuthorRole(art.authorRole || 'Editor');
+        setLocation(art.location || 'Patna');
+        setSource(art.source || '');
+        setVideoUrl(art.videoUrl || '');
+        setVideoSummary(art.videoSummary || '');
+        setIsFeatured(art.isFeatured || false);
+        setIsBreaking(art.isBreaking || false);
+        setStatus(art.status || 'published');
+        setScheduledAt(art.scheduledAt || '');
+        setSeoTitle(art.seoTitle || '');
+        setSeoDescription(art.seoDescription || '');
+        return;
+      }
+    }
+    // Default values for new article creation
+    setHeadline('');
+    setSummary('');
+    setBody('');
+    setKeyPointsText('');
+    setCoverImageUrl('');
+    setCoverImageCaption('');
+    setCoverImageCredit('');
+    setCoverage('Regional');
+    setDistrict('');
+    setSelectedTopics([]);
+    setFormat('Article');
+    setAuthorName(store.getCurrentUser()?.name || 'Editorial Desk');
+    setAuthorRole('Editor');
+    setLocation('Patna');
+    setSource('');
+    setVideoUrl('');
+    setVideoSummary('');
+    setIsFeatured(false);
+    setIsBreaking(false);
+    setStatus('published');
+    setScheduledAt('');
+    setSeoTitle('');
+    setSeoDescription('');
+  }, [editArticleId]);
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      alert('Please select an image file (e.g. JPG, PNG, WEBP).');
+      return;
+    }
+
+    setIsUploadingImage(true);
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      const dataUrl = event.target?.result as string;
+      if (dataUrl) {
+        setCoverImageUrl(dataUrl);
+        await store.uploadMedia(file.name, dataUrl, file.size);
+      }
+      setIsUploadingImage(false);
+    };
+    reader.onerror = () => {
+      alert('Failed to read image file.');
+      setIsUploadingImage(false);
+    };
+    reader.readAsDataURL(file);
+  };
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -326,25 +418,100 @@ export const AdminCreateEditNews: React.FC<AdminCreateEditNewsProps> = ({
             </div>
 
             <div className="p-4 bg-stone-950 border border-stone-800 rounded-xl space-y-3">
-              <span className="text-xs font-bold text-white flex items-center gap-1.5">
-                <ImageIcon size={15} className="text-red-500" />
-                <span>Cover Image</span>
-              </span>
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-white flex items-center gap-1.5">
+                  <ImageIcon size={15} className="text-red-500" />
+                  <span>Cover Photo</span>
+                </span>
+                {coverImageUrl && (
+                  <button
+                    type="button"
+                    onClick={() => setCoverImageUrl('')}
+                    className="text-[11px] text-red-400 hover:text-red-300 flex items-center gap-1 cursor-pointer font-medium"
+                  >
+                    <Trash2 size={12} />
+                    <span>Remove Photo</span>
+                  </button>
+                )}
+              </div>
 
-              <input
-                type="text"
-                value={coverImageUrl}
-                onChange={(e) => setCoverImageUrl(e.target.value)}
-                placeholder="Image URL..."
-                className="w-full px-3 py-2 text-xs bg-stone-900 border border-stone-700 rounded-lg text-white placeholder-stone-500 focus:ring-2 focus:ring-red-500"
-              />
+              {/* Photo Preview if selected */}
+              {coverImageUrl ? (
+                <div className="relative aspect-16/9 rounded-lg overflow-hidden border border-stone-800 bg-stone-900 group">
+                  <img src={coverImageUrl} alt="Cover Preview" className="w-full h-full object-cover" />
+                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 p-2">
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-md"
+                    >
+                      <Upload size={13} />
+                      <span>Upload New Photo</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setShowMediaPicker(true)}
+                      className="px-3 py-1.5 bg-stone-800 hover:bg-stone-700 text-white rounded-lg text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-md border border-stone-700"
+                    >
+                      <FileImage size={13} />
+                      <span>Media Library</span>
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                /* Photo Picker Options */
+                <div className="space-y-3">
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    accept="image/*"
+                    onChange={handleFileUpload}
+                    className="hidden"
+                  />
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={isUploadingImage}
+                      className="p-3 bg-stone-900 hover:bg-stone-850 border border-dashed border-stone-700 hover:border-red-500 rounded-xl text-stone-200 hover:text-white text-xs font-semibold flex flex-col items-center justify-center gap-1.5 cursor-pointer transition-all active:scale-98"
+                    >
+                      <Upload size={20} className="text-red-500" />
+                      <span>{isUploadingImage ? 'Uploading Image...' : 'Upload from Gallery / Device'}</span>
+                      <span className="text-[10px] text-stone-500 font-normal">JPG, PNG, WEBP from computer/phone</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setShowMediaPicker(true)}
+                      className="p-3 bg-stone-900 hover:bg-stone-850 border border-stone-700 hover:border-stone-500 rounded-xl text-stone-200 hover:text-white text-xs font-semibold flex flex-col items-center justify-center gap-1.5 cursor-pointer transition-all active:scale-98"
+                    >
+                      <FileImage size={20} className="text-amber-500" />
+                      <span>Browse Media Library</span>
+                      <span className="text-[10px] text-stone-500 font-normal">Choose from ({mediaAssets.length}) saved photos</span>
+                    </button>
+                  </div>
+
+                  <div className="pt-1">
+                    <label className="block text-[11px] text-stone-400 font-medium mb-1">Or paste photo URL:</label>
+                    <input
+                      type="text"
+                      value={coverImageUrl}
+                      onChange={(e) => setCoverImageUrl(e.target.value)}
+                      placeholder="https://..."
+                      className="w-full px-3 py-1.5 text-xs bg-stone-900 border border-stone-700 rounded-lg text-white placeholder-stone-500 focus:ring-2 focus:ring-red-500"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* Caption & Credit Inputs */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
                 <input
                   type="text"
                   value={coverImageCaption}
                   onChange={(e) => setCoverImageCaption(e.target.value)}
-                  placeholder="Image Caption"
+                  placeholder="Image Caption (e.g. Metro construction work)"
                   className="w-full px-3 py-1.5 text-xs bg-stone-900 border border-stone-700 rounded-md text-white placeholder-stone-500"
                 />
                 <input
@@ -542,6 +709,79 @@ export const AdminCreateEditNews: React.FC<AdminCreateEditNewsProps> = ({
                   />
                 </div>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Media Library Selection Modal */}
+      {showMediaPicker && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-150">
+          <div className="bg-stone-900 border border-stone-800 rounded-2xl w-full max-w-3xl max-h-[85vh] flex flex-col overflow-hidden shadow-2xl">
+            <div className="p-4 border-b border-stone-800 flex items-center justify-between bg-stone-950">
+              <h3 className="font-bold text-white text-sm flex items-center gap-2 font-serif">
+                <FileImage size={18} className="text-red-500" />
+                <span>Select Photo from Media Library</span>
+              </h3>
+              <button
+                type="button"
+                onClick={() => setShowMediaPicker(false)}
+                className="p-1.5 text-stone-400 hover:text-white rounded-lg hover:bg-stone-800 cursor-pointer transition-colors"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-4">
+              {mediaAssets.length === 0 ? (
+                <div className="text-center py-12 text-stone-400 text-xs space-y-2">
+                  <FileImage size={32} className="mx-auto text-stone-600" />
+                  <p>No images saved in Media Library yet.</p>
+                  <p className="text-stone-500">Upload a photo directly from your device gallery!</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                  {mediaAssets.map((asset) => (
+                    <div
+                      key={asset.id}
+                      onClick={() => {
+                        setCoverImageUrl(asset.url);
+                        setShowMediaPicker(false);
+                      }}
+                      className="group relative aspect-16/9 bg-stone-950 border border-stone-800 rounded-xl overflow-hidden cursor-pointer hover:border-red-500 transition-colors shadow-xs"
+                    >
+                      <img src={asset.url} alt={asset.filename} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+                      <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-xs font-bold">
+                        Select Photo
+                      </div>
+                      <div className="absolute bottom-1 left-1 right-1 text-[9px] text-stone-300 truncate bg-black/80 px-1.5 py-0.5 rounded">
+                        {asset.filename}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="p-3 border-t border-stone-800 flex items-center justify-between bg-stone-950">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowMediaPicker(false);
+                  fileInputRef.current?.click();
+                }}
+                className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-sm transition-colors"
+              >
+                <Upload size={14} />
+                <span>Upload New Photo from Gallery</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowMediaPicker(false)}
+                className="px-3.5 py-1.5 bg-stone-800 hover:bg-stone-700 text-stone-300 rounded-lg text-xs font-bold cursor-pointer transition-colors"
+              >
+                Cancel
+              </button>
             </div>
           </div>
         </div>

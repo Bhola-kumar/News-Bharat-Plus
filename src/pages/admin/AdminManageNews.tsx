@@ -193,7 +193,11 @@ export const AdminManageNews: React.FC<AdminManageNewsProps> = ({ onEditArticle,
                 filtered.map((art) => (
                   <tr key={art.id} className="hover:bg-stone-800/50 transition-colors">
                     <td className="py-3.5 px-4 max-w-sm">
-                      <div className="font-bold text-white line-clamp-2">
+                      <div 
+                        onClick={() => onEditArticle(art.id)}
+                        className="font-bold text-white hover:text-red-400 cursor-pointer transition-colors line-clamp-2"
+                        title="Click to edit article anytime"
+                      >
                         {art.headline}
                       </div>
                       <div className="text-[11px] text-stone-400 mt-0.5">
@@ -258,13 +262,14 @@ export const AdminManageNews: React.FC<AdminManageNewsProps> = ({ onEditArticle,
                           </button>
                         </div>
                       ) : (
-                        <>
+                        <div className="inline-flex items-center gap-1.5">
                           <button
                             onClick={() => onEditArticle(art.id)}
-                            className="p-1.5 text-stone-300 hover:text-white hover:bg-stone-800 rounded-lg transition-colors cursor-pointer"
+                            className="px-2.5 py-1 bg-stone-800 hover:bg-stone-700 text-stone-200 hover:text-white rounded-lg text-xs font-semibold cursor-pointer inline-flex items-center gap-1 transition-colors border border-stone-700 shadow-xs"
                             title="Edit Article"
                           >
-                            <Edit3 size={15} />
+                            <Edit3 size={13} className="text-red-400" />
+                            <span>Edit</span>
                           </button>
                           <button
                             onClick={() => store.softDeleteArticle(art.id)}
@@ -273,7 +278,7 @@ export const AdminManageNews: React.FC<AdminManageNewsProps> = ({ onEditArticle,
                           >
                             <Trash2 size={15} />
                           </button>
-                        </>
+                        </div>
                       )}
                     </td>
                   </tr>
