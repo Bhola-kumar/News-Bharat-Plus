@@ -562,7 +562,7 @@ class NewsStore {
 
   private async fetchRows(table: string): Promise<DbRow[]> {
     const allRows: DbRow[] = [];
-    const pageSize = 1000;
+    const pageSize = 250;
     for (let from = 0; ; from += pageSize) {
       let query = this.client.from(table).select('*');
       if (table === 'articles') query = query.order('published_at', { ascending: false });
@@ -576,7 +576,7 @@ class NewsStore {
       }
       if (table === 'districts' || table === 'topics') query = query.order('sort_order');
       const { data, error } = await query.range(from, from + pageSize - 1);
-      if (error) throw error;
+      if (error) throw new Error(`Failed to load ${table}: ${error.message}`);
       const rows = (data || []) as unknown as DbRow[];
       allRows.push(...rows);
       if (rows.length < pageSize) return allRows;

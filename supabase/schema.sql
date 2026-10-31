@@ -156,6 +156,8 @@ DROP INDEX IF EXISTS idx_ad_campaigns_desktop_banner_url;
 
 CREATE INDEX IF NOT EXISTS idx_articles_public_feed
   ON public.articles(published_at DESC) WHERE status = 'published' AND deleted_at IS NULL;
+CREATE INDEX IF NOT EXISTS idx_articles_admin_published_at
+  ON public.articles(published_at DESC);
 CREATE INDEX IF NOT EXISTS idx_articles_district
   ON public.articles(district, published_at DESC) WHERE status = 'published' AND deleted_at IS NULL;
 CREATE INDEX IF NOT EXISTS idx_articles_trending
@@ -177,6 +179,7 @@ CREATE TABLE IF NOT EXISTS public.article_revisions (
 );
 ALTER TABLE public.article_revisions ADD COLUMN IF NOT EXISTS revised_by_name TEXT NOT NULL DEFAULT '';
 CREATE INDEX IF NOT EXISTS idx_article_revisions_article ON public.article_revisions(article_id, revised_at DESC);
+CREATE INDEX IF NOT EXISTS idx_article_revisions_revised_at ON public.article_revisions(revised_at DESC);
 
 CREATE TABLE IF NOT EXISTS public.ad_campaigns (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),

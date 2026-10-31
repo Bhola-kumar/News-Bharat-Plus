@@ -170,10 +170,28 @@ export default function App() {
     return (
       <div className="min-h-screen bg-stone-950 text-stone-100 flex flex-col items-center justify-center p-6 space-y-5">
         <AppLogo size="xl" showText={true} />
-        <div className="flex items-center gap-2 text-stone-400 text-xs pt-2">
-          <div className="w-4 h-4 border-2 border-red-600 border-t-transparent rounded-full animate-spin"></div>
-          <span>Loading News Bharat Plus...</span>
-        </div>
+        {store.isLoadingData() ? (
+          <div className="flex items-center gap-2 text-stone-400 text-xs pt-2">
+            <div className="w-4 h-4 border-2 border-red-600 border-t-transparent rounded-full animate-spin"></div>
+            <span>Loading News Bharat Plus...</span>
+          </div>
+        ) : (
+          <div className="max-w-md space-y-3 text-center">
+            <p role="alert" className="text-sm text-red-300">
+              {store.getDatabaseError() || 'The application could not connect to its database.'}
+            </p>
+            <p className="text-xs text-stone-400">
+              Check the Supabase database and schema, then retry. If the problem continues, share this error with your administrator.
+            </p>
+            <button
+              type="button"
+              onClick={() => void store.forceSync()}
+              className="rounded-lg bg-red-600 px-4 py-2 text-xs font-bold text-white hover:bg-red-700"
+            >
+              Retry database connection
+            </button>
+          </div>
+        )}
       </div>
     );
   }
