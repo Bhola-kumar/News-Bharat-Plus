@@ -16,6 +16,7 @@ import {
   X
 } from 'lucide-react';
 import { useNewsStore } from '../../lib/newsStore';
+import { compressImageFile } from '../../lib/imageCompression';
 import { AdCampaign, AdPlacementSlot } from '../../types/news';
 
 export const AdminAdManager: React.FC = () => {
@@ -44,37 +45,35 @@ export const AdminAdManager: React.FC = () => {
   const [priority, setPriority] = useState(1);
   const [isActive, setIsActive] = useState(true);
 
-  const handleDesktopUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleDesktopUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     setIsUploading(true);
-    const reader = new FileReader();
-    reader.onload = async (evt) => {
-      const dataUrl = evt.target?.result as string;
-      if (dataUrl) {
-        setDesktopBannerUrl(dataUrl);
-        if (!mobileBannerUrl) setMobileBannerUrl(dataUrl);
-        await store.uploadMedia(file.name, dataUrl, file.size);
-      }
+    try {
+      const compressedDataUrl = await compressImageFile(file, 1200, 600, 0.82);
+      setDesktopBannerUrl(compressedDataUrl);
+      if (!mobileBannerUrl) setMobileBannerUrl(compressedDataUrl);
+      await store.uploadMedia(file.name, compressedDataUrl, file.size);
+    } catch (err) {
+      console.error('Failed to compress desktop banner:', err);
+    } finally {
       setIsUploading(false);
-    };
-    reader.readAsDataURL(file);
+    }
   };
 
-  const handleMobileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleMobileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     setIsUploading(true);
-    const reader = new FileReader();
-    reader.onload = async (evt) => {
-      const dataUrl = evt.target?.result as string;
-      if (dataUrl) {
-        setMobileBannerUrl(dataUrl);
-        await store.uploadMedia(file.name, dataUrl, file.size);
-      }
+    try {
+      const compressedDataUrl = await compressImageFile(file, 800, 600, 0.82);
+      setMobileBannerUrl(compressedDataUrl);
+      await store.uploadMedia(file.name, compressedDataUrl, file.size);
+    } catch (err) {
+      console.error('Failed to compress mobile banner:', err);
+    } finally {
       setIsUploading(false);
-    };
-    reader.readAsDataURL(file);
+    }
   };
 
   const openCreateForm = () => {

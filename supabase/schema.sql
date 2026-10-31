@@ -147,6 +147,10 @@ CREATE TABLE IF NOT EXISTS public.articles (
 );
 
 ALTER TABLE public.articles ADD COLUMN IF NOT EXISTS status_before_delete public.article_status;
+DROP INDEX IF EXISTS idx_articles_cover_image_url;
+DROP INDEX IF EXISTS idx_articles_cover;
+DROP INDEX IF EXISTS idx_ad_campaigns_desktop_banner_url;
+
 CREATE INDEX IF NOT EXISTS idx_articles_public_feed
   ON public.articles(published_at DESC) WHERE status = 'published' AND deleted_at IS NULL;
 CREATE INDEX IF NOT EXISTS idx_articles_district

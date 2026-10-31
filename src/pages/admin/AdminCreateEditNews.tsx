@@ -23,6 +23,7 @@ import {
   Loader2
 } from 'lucide-react';
 import { useNewsStore, parseVideoUrl } from '../../lib/newsStore';
+import { compressImageFile } from '../../lib/imageCompression';
 import { CoverageType, ArticleFormat, ArticleStatus } from '../../types/news';
 
 interface AdminCreateEditNewsProps {
@@ -137,7 +138,7 @@ export const AdminCreateEditNews: React.FC<AdminCreateEditNewsProps> = ({
     setSeoDescription('');
   }, [editArticleId]);
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -147,20 +148,16 @@ export const AdminCreateEditNews: React.FC<AdminCreateEditNewsProps> = ({
     }
 
     setIsUploadingImage(true);
-    const reader = new FileReader();
-    reader.onload = async (event) => {
-      const dataUrl = event.target?.result as string;
-      if (dataUrl) {
-        setCoverImageUrl(dataUrl);
-        await store.uploadMedia(file.name, dataUrl, file.size);
-      }
+    try {
+      const compressedDataUrl = await compressImageFile(file, 1200, 1200, 0.80);
+      setCoverImageUrl(compressedDataUrl);
+      await store.uploadMedia(file.name, compressedDataUrl, file.size);
+    } catch (err) {
+      console.error('Failed to compress/upload image:', err);
+      alert('Failed to process image file.');
+    } finally {
       setIsUploadingImage(false);
-    };
-    reader.onerror = () => {
-      alert('Failed to read image file.');
-      setIsUploadingImage(false);
-    };
-    reader.readAsDataURL(file);
+    }
   };
 
   useEffect(() => {
