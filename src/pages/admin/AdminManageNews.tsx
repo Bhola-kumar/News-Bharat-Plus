@@ -11,7 +11,9 @@ import {
   RotateCcw, 
   Flame,
   Plus,
-  AlertTriangle
+  AlertTriangle,
+  Loader2,
+  X
 } from 'lucide-react';
 import { useNewsStore } from '../../lib/newsStore';
 
@@ -26,6 +28,14 @@ export const AdminManageNews: React.FC<AdminManageNewsProps> = ({ onEditArticle,
 
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'published' | 'draft' | 'scheduled' | 'deleted'>('all');
+
+  // Deletion modal & button loader state
+  const [deleteTarget, setDeleteTarget] = useState<{
+    id: string;
+    headline: string;
+    type: 'trash' | 'permanent' | 'empty_trash';
+  } | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const filtered = allArticles.filter(art => {
     if (statusFilter === 'deleted') {
@@ -50,15 +60,22 @@ export const AdminManageNews: React.FC<AdminManageNewsProps> = ({ onEditArticle,
 
   const trashCount = allArticles.filter(a => Boolean(a.deletedAt)).length;
 
-  const handlePermanentDelete = (id: string, headline: string) => {
-    if (window.confirm(`Are you sure you want to permanently delete "${headline}"?\n\nThis action cannot be undone.`)) {
-      store.permanentDeleteArticle(id);
-    }
-  };
-
-  const handleEmptyTrash = () => {
-    if (window.confirm(`Are you sure you want to permanently delete ALL ${trashCount} item(s) in Trash?\n\nThis action cannot be undone.`)) {
-      store.emptyTrash();
+  const confirmDeletion = async () => {
+    if (!deleteTarget) return;
+    setIsDeleting(true);
+    try {
+      if (deleteTarget.type === 'trash') {
+        await store.softDeleteArticle(deleteTarget.id);
+      } else if (deleteTarget.type === 'permanent') {
+        await store.permanentDeleteArticle(deleteTarget.id);
+      } else if (deleteTarget.type === 'empty_trash') {
+        await store.emptyTrash();
+      }
+    } catch (error) {
+      console.error('Failed to execute deletion:', error);
+    } finally {
+      setIsDeleting(false);
+      setDeleteTarget(null);
     }
   };
 
@@ -158,7 +175,7 @@ export const AdminManageNews: React.FC<AdminManageNewsProps> = ({ onEditArticle,
           </div>
           {trashCount > 0 && (
             <button
-              onClick={handleEmptyTrash}
+              onClick={() => setDeleteTarget({ id: '', headline: `All ${trashCount} article(s) in Trash`, type: 'empty_trash' })}
               className="px-3.5 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-bold text-xs flex items-center justify-center gap-1.5 shrink-0 cursor-pointer shadow-xs"
             >
               <Trash2 size={14} />
@@ -253,7 +270,7 @@ export const AdminManageNews: React.FC<AdminManageNewsProps> = ({ onEditArticle,
                             <span>Restore</span>
                           </button>
                           <button
-                            onClick={() => handlePermanentDelete(art.id, art.headline)}
+                            onClick={() => setDeleteTarget({ id: art.id, headline: art.headline, type: 'permanent' })}
                             className="px-2 py-1 bg-red-950 hover:bg-red-900 text-red-300 border border-red-800/80 rounded-lg text-xs font-semibold cursor-pointer inline-flex items-center gap-1 shadow-xs transition-colors"
                             title="Permanently Delete Article"
                           >
@@ -272,7 +289,7 @@ export const AdminManageNews: React.FC<AdminManageNewsProps> = ({ onEditArticle,
                             <span>Edit</span>
                           </button>
                           <button
-                            onClick={() => store.softDeleteArticle(art.id)}
+                            onClick={() => setDeleteTarget({ id: art.id, headline: art.headline, type: 'trash' })}
                             className="p-1.5 text-red-400 hover:text-red-300 hover:bg-red-950/60 rounded-lg transition-colors cursor-pointer"
                             title="Move to Trash"
                           >
@@ -288,6 +305,78 @@ export const AdminManageNews: React.FC<AdminManageNewsProps> = ({ onEditArticle,
           </table>
         </div>
       </div>
+
+      {/* Deletion Confirmation Modal with Loader */}
+      {deleteTarget && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-150">
+          <div className="bg-stone-900 border border-stone-800 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-stone-800 pb-3">
+              <div className="flex items-center gap-2 text-red-500 font-bold text-sm font-serif">
+                <AlertTriangle size={20} />
+                <span>Confirm Deletion</span>
+              </div>
+              <button
+                onClick={() => !isDeleting && setDeleteTarget(null)}
+                disabled={isDeleting}
+                className="p-1 text-stone-400 hover:text-white rounded-lg hover:bg-stone-800 cursor-pointer disabled:opacity-50"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="text-xs text-stone-300 space-y-2 leading-relaxed">
+              <p className="font-semibold text-white">
+                {deleteTarget.type === 'empty_trash' ? (
+                  `Are you sure you want to permanently delete ALL ${trashCount} article(s) in Trash?`
+                ) : deleteTarget.type === 'permanent' ? (
+                  `Are you sure you want to permanently delete this article?`
+                ) : (
+                  `Are you sure you want to move this article to Trash?`
+                )}
+              </p>
+              <div className="p-3 bg-stone-950 border border-stone-800 rounded-lg text-stone-200 font-medium italic">
+                "{deleteTarget.headline}"
+              </div>
+              <p className="text-stone-400 text-[11px]">
+                {deleteTarget.type === 'trash'
+                  ? 'The article will be placed in Trash for 30 days before automatic purge, and can be restored anytime.'
+                  : 'This action will permanently erase the article data and cannot be undone.'}
+              </p>
+            </div>
+
+            <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-stone-800">
+              <button
+                type="button"
+                onClick={() => setDeleteTarget(null)}
+                disabled={isDeleting}
+                className="px-4 py-2 bg-stone-800 hover:bg-stone-700 disabled:opacity-50 text-stone-300 text-xs font-semibold rounded-lg cursor-pointer transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={confirmDeletion}
+                disabled={isDeleting}
+                className="px-4 py-2 bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white text-xs font-bold rounded-lg shadow-md flex items-center gap-2 cursor-pointer transition-colors"
+              >
+                {isDeleting ? (
+                  <>
+                    <Loader2 size={14} className="animate-spin" />
+                    <span>Deleting...</span>
+                  </>
+                ) : (
+                  <>
+                    <Trash2 size={14} />
+                    <span>
+                      {deleteTarget.type === 'trash' ? 'Move to Trash' : 'Delete Permanently'}
+                    </span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

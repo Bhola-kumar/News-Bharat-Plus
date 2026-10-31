@@ -19,7 +19,8 @@ import {
   FileImage,
   X,
   Trash2,
-  Plus
+  Plus,
+  Loader2
 } from 'lucide-react';
 import { useNewsStore, parseVideoUrl } from '../../lib/newsStore';
 import { CoverageType, ArticleFormat, ArticleStatus } from '../../types/news';
@@ -72,6 +73,7 @@ export const AdminCreateEditNews: React.FC<AdminCreateEditNewsProps> = ({
   const [previewDevice, setPreviewDevice] = useState<'desktop' | 'mobile'>('desktop');
   const [autoSavedTime, setAutoSavedTime] = useState<string | null>(null);
   const [saveSuccessMsg, setSaveSuccessMsg] = useState(false);
+  const [isSaving, setIsSaving] = useState<'published' | 'draft' | null>(null);
   const [showMediaPicker, setShowMediaPicker] = useState(false);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
 
@@ -186,53 +188,65 @@ export const AdminCreateEditNews: React.FC<AdminCreateEditNewsProps> = ({
       return;
     }
 
-    const finalStatus = targetStatus || status;
-    const finalKeyPoints = keyPointsText
-      .split('\n')
-      .map(p => p.trim())
-      .filter(Boolean);
+    const saveType = targetStatus || status;
+    setIsSaving(saveType === 'published' ? 'published' : 'draft');
 
-    let breakingExp = undefined;
-    if (isBreaking) {
-      breakingExp = new Date(Date.now() + parseInt(breakingExpiryHours) * 3600000).toISOString();
+    try {
+      const finalStatus = targetStatus || status;
+      const finalKeyPoints = keyPointsText
+        .split('\n')
+        .map(p => p.trim())
+        .filter(Boolean);
+
+      let breakingExp = undefined;
+      if (isBreaking) {
+        breakingExp = new Date(Date.now() + parseInt(breakingExpiryHours) * 3600000).toISOString();
+      }
+
+      const saved = await store.saveArticle({
+        id: existing?.id,
+        headline: headline.trim(),
+        summary: summary.trim(),
+        body: body.trim(),
+        keyPoints: finalKeyPoints,
+        coverImageUrl,
+        coverImageCaption,
+        coverImageCredit,
+        coverage,
+        state: coverage === 'Regional' ? 'Bihar' : 'All India',
+        district: coverage === 'Regional' ? district : undefined,
+        topics: selectedTopics,
+        format,
+        authorName: authorName.trim(),
+        authorRole: authorRole.trim(),
+        location: location.trim(),
+        source: source.trim(),
+        videoUrl: videoParsed?.isValid ? videoUrl.trim() : undefined,
+        videoProvider: videoParsed?.provider,
+        videoSummary: videoSummary.trim(),
+        isFeatured,
+        isBreaking,
+        breakingExpiry: breakingExp,
+        status: finalStatus,
+        scheduledAt: finalStatus === 'scheduled' ? scheduledAt : undefined,
+        seoTitle: seoTitle.trim() || headline.trim(),
+        seoDescription: seoDescription.trim() || summary.trim()
+      });
+
+      if (!saved) {
+        setIsSaving(null);
+        return;
+      }
+      setSaveSuccessMsg(true);
+      setTimeout(() => {
+        setSaveSuccessMsg(false);
+        setIsSaving(null);
+        onSaveSuccess();
+      }, 700);
+    } catch (error) {
+      setIsSaving(null);
+      console.error('Error saving article:', error);
     }
-
-    const saved = await store.saveArticle({
-      id: existing?.id,
-      headline: headline.trim(),
-      summary: summary.trim(),
-      body: body.trim(),
-      keyPoints: finalKeyPoints,
-      coverImageUrl,
-      coverImageCaption,
-      coverImageCredit,
-      coverage,
-      state: coverage === 'Regional' ? 'Bihar' : 'All India',
-      district: coverage === 'Regional' ? district : undefined,
-      topics: selectedTopics,
-      format,
-      authorName: authorName.trim(),
-      authorRole: authorRole.trim(),
-      location: location.trim(),
-      source: source.trim(),
-      videoUrl: videoParsed?.isValid ? videoUrl.trim() : undefined,
-      videoProvider: videoParsed?.provider,
-      videoSummary: videoSummary.trim(),
-      isFeatured,
-      isBreaking,
-      breakingExpiry: breakingExp,
-      status: finalStatus,
-      scheduledAt: finalStatus === 'scheduled' ? scheduledAt : undefined,
-      seoTitle: seoTitle.trim() || headline.trim(),
-      seoDescription: seoDescription.trim() || summary.trim()
-    });
-
-    if (!saved) return;
-    setSaveSuccessMsg(true);
-    setTimeout(() => {
-      setSaveSuccessMsg(false);
-      onSaveSuccess();
-    }, 700);
   };
 
   const revisions = existing ? store.getArticleRevisions(existing.id) : [];
@@ -286,16 +300,33 @@ export const AdminCreateEditNews: React.FC<AdminCreateEditNewsProps> = ({
 
           <button
             onClick={() => handleSave('draft')}
-            className="px-3 py-2 bg-stone-200 hover:bg-stone-300 text-stone-800 text-xs font-bold rounded-lg cursor-pointer"
+            disabled={isSaving !== null}
+            className="px-3 py-2 bg-stone-200 hover:bg-stone-300 disabled:opacity-50 text-stone-800 text-xs font-bold rounded-lg cursor-pointer flex items-center gap-1.5 transition-colors"
           >
-            Save Draft
+            {isSaving === 'draft' && <Loader2 size={13} className="animate-spin text-stone-700" />}
+            <span>{isSaving === 'draft' ? 'Saving...' : 'Save Draft'}</span>
           </button>
           <button
             onClick={() => handleSave('published')}
-            className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-xs font-bold uppercase tracking-wider rounded-lg shadow-xs flex items-center gap-1.5 cursor-pointer"
+            disabled={isSaving !== null}
+            className="px-4 py-2 bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white text-xs font-bold uppercase tracking-wider rounded-lg shadow-xs flex items-center gap-1.5 cursor-pointer transition-colors"
           >
-            <Save size={14} />
-            <span>{saveSuccessMsg ? 'Saved!' : 'Publish Now'}</span>
+            {isSaving === 'published' ? (
+              <>
+                <Loader2 size={14} className="animate-spin" />
+                <span>Publishing...</span>
+              </>
+            ) : saveSuccessMsg ? (
+              <>
+                <CheckCircle2 size={14} />
+                <span>Published!</span>
+              </>
+            ) : (
+              <>
+                <Save size={14} />
+                <span>Publish Now</span>
+              </>
+            )}
           </button>
         </div>
       </div>
@@ -714,17 +745,34 @@ export const AdminCreateEditNews: React.FC<AdminCreateEditNewsProps> = ({
                 <button
                   type="button"
                   onClick={() => handleSave('published')}
-                  className="w-full py-2.5 bg-red-600 hover:bg-red-700 text-white font-bold uppercase tracking-wider text-xs rounded-lg shadow-md flex items-center justify-center gap-2 cursor-pointer transition-colors"
+                  disabled={isSaving !== null}
+                  className="w-full py-2.5 bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white font-bold uppercase tracking-wider text-xs rounded-lg shadow-md flex items-center justify-center gap-2 cursor-pointer transition-colors"
                 >
-                  <Save size={14} />
-                  <span>{saveSuccessMsg ? 'Published!' : 'Publish Now'}</span>
+                  {isSaving === 'published' ? (
+                    <>
+                      <Loader2 size={15} className="animate-spin" />
+                      <span>Publishing Now...</span>
+                    </>
+                  ) : saveSuccessMsg ? (
+                    <>
+                      <CheckCircle2 size={15} />
+                      <span>Published!</span>
+                    </>
+                  ) : (
+                    <>
+                      <Save size={14} />
+                      <span>Publish Now</span>
+                    </>
+                  )}
                 </button>
                 <button
                   type="button"
                   onClick={() => handleSave('draft')}
-                  className="w-full py-2 bg-stone-800 hover:bg-stone-700 text-stone-300 font-semibold text-xs rounded-lg cursor-pointer transition-colors"
+                  disabled={isSaving !== null}
+                  className="w-full py-2 bg-stone-800 hover:bg-stone-700 disabled:opacity-50 text-stone-300 font-semibold text-xs rounded-lg cursor-pointer flex items-center justify-center gap-1.5 transition-colors"
                 >
-                  Save as Draft
+                  {isSaving === 'draft' && <Loader2 size={13} className="animate-spin text-stone-300" />}
+                  <span>{isSaving === 'draft' ? 'Saving Draft...' : 'Save as Draft'}</span>
                 </button>
               </div>
             </div>
@@ -732,35 +780,6 @@ export const AdminCreateEditNews: React.FC<AdminCreateEditNewsProps> = ({
         </div>
       )}
 
-      {/* Bottom Sticky Action Toolbar */}
-      {activeTab === 'editor' && (
-        <div className="sticky bottom-4 z-40 bg-stone-900/95 backdrop-blur-md border border-stone-800 p-3.5 rounded-xl shadow-2xl flex flex-wrap items-center justify-between gap-3">
-          <button
-            type="button"
-            onClick={onBack}
-            className="px-4 py-2 bg-stone-800 hover:bg-stone-700 text-stone-300 text-xs font-semibold rounded-lg cursor-pointer transition-colors"
-          >
-            ← Back to Manage News
-          </button>
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => handleSave('draft')}
-              className="px-4 py-2 bg-stone-800 hover:bg-stone-700 text-stone-200 text-xs font-bold rounded-lg cursor-pointer transition-colors"
-            >
-              Save Draft
-            </button>
-            <button
-              type="button"
-              onClick={() => handleSave('published')}
-              className="px-5 py-2 bg-red-600 hover:bg-red-700 text-white text-xs font-bold uppercase tracking-wider rounded-lg shadow-lg flex items-center gap-1.5 cursor-pointer transition-colors"
-            >
-              <Save size={15} />
-              <span>{saveSuccessMsg ? 'Published!' : 'Publish Now'}</span>
-            </button>
-          </div>
-        </div>
-      )}
 
       {/* Media Library Selection Modal */}
       {showMediaPicker && (
