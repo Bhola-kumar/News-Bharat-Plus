@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { useNewsStore } from '../lib/newsStore';
 import { useLanguage } from '../lib/i18n';
+import { AppLogo } from './AppLogo';
 
 interface HeaderProps {
   currentPath: string;
@@ -250,24 +251,11 @@ export const Header: React.FC<HeaderProps> = ({ currentPath, onNavigate, onOpenA
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3.5 flex items-center justify-between gap-4">
         {/* Brand Zone */}
         <div className="flex items-center gap-4">
-          <button 
+          <AppLogo
+            size="md"
+            showText={true}
             onClick={() => { onNavigate('/'); setMobileMenuOpen(false); }}
-            className="text-left group cursor-pointer focus:outline-hidden"
-          >
-            <div className="flex items-baseline gap-2">
-              <span className="text-2xl sm:text-3xl font-extrabold text-red-600 tracking-tight font-serif">
-                {language === 'hi'
-                  ? settings.siteNameHi || t('siteName')
-                  : settings.siteNameEn || t('siteName')}
-              </span>
-              <span className="hidden lg:inline text-xs font-bold text-stone-400 tracking-widest uppercase">
-                {language === 'hi' ? 'NEWS BHARAT PLUS' : 'न्यूज़ भारत प्लस'}
-              </span>
-            </div>
-            <p className="text-[11px] text-stone-500 hidden sm:block">
-              {settings.taglineHi || t('tagline')}
-            </p>
-          </button>
+          />
         </div>
 
         {/* Center / Right Controls: District Selector & Search */}

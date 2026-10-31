@@ -8,6 +8,7 @@ import { CheckCircle2, Lock, User, X } from 'lucide-react';
 import { useNewsStore } from '../lib/newsStore';
 import { useLanguage } from '../lib/i18n';
 import { getGoogleClientId, initializeGoogleIdentity } from '../lib/googleAuth';
+import { AppLogo } from './AppLogo';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -105,9 +106,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, title, me
       <div className="bg-white rounded-2xl max-w-sm w-full overflow-hidden shadow-2xl border border-stone-200">
         <div className="bg-stone-900 text-white px-5 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-red-600/30 flex items-center justify-center text-red-500">
-              <User size={18} />
-            </div>
+            <AppLogo size="sm" forceTheme="dark" />
             <div>
               <h3 className="font-bold text-sm sm:text-base leading-tight">{title || t('ssoTitle')}</h3>
               <p className="text-[11px] text-stone-400">

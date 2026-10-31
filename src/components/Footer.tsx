@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { useNewsStore } from '../lib/newsStore';
 import { useLanguage } from '../lib/i18n';
+import { AppLogo } from './AppLogo';
 
 interface FooterProps {
   onNavigate: (path: string) => void;
@@ -33,16 +34,7 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8">
         {/* Brand & Editorial Column */}
         <div className="lg:col-span-2 space-y-3">
-          <div className="flex items-baseline gap-2">
-            <span className="text-2xl font-black text-red-500 tracking-tight font-serif">
-              {language === 'hi'
-                ? settings.siteNameHi || t('siteName')
-                : settings.siteNameEn || t('siteName')}
-            </span>
-            <span className="text-xs font-bold text-stone-400 tracking-widest uppercase">
-              {language === 'hi' ? 'NEWS BHARAT PLUS' : 'न्यूज़ भारत प्लस'}
-            </span>
-          </div>
+          <AppLogo size="lg" showText={true} forceTheme="dark" onClick={() => onNavigate('/')} />
           <p className="text-xs text-stone-400 leading-relaxed max-w-md">
             {language === 'hi'
               ? 'राजधानी पटना, बिहार के सभी 38 जिलों और राष्ट्रीय मुद्दों पर स्वतंत्र, सटीक और निष्पक्ष पत्रकारिता को समर्पित प्रमुख डिजिटल समाचार पोर्टल।'

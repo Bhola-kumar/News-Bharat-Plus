@@ -16,6 +16,7 @@ import { Footer } from './components/Footer';
 import { BreakingTicker } from './components/BreakingTicker';
 import { BottomMarqueeTicker } from './components/BottomMarqueeTicker';
 import { AuthModal } from './components/AuthModal';
+import { AppLogo } from './components/AppLogo';
 
 // Public Pages
 import { HomePage } from './pages/HomePage';
@@ -167,18 +168,11 @@ export default function App() {
   // --- RENDER ADMIN PORTAL IF PATH IS /admin ---
   if (!store.isReady()) {
     return (
-      <div className="min-h-screen bg-stone-950 text-stone-100 flex flex-col items-center justify-center p-6 space-y-4">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-red-600 text-white font-black font-serif text-xl flex items-center justify-center rounded-lg shadow-lg">
-            N
-          </div>
-          <span className="text-2xl font-black font-serif tracking-tight text-white">
-            News Bharat <span className="text-red-500">Plus</span>
-          </span>
-        </div>
-        <div className="flex items-center gap-2 text-stone-400 text-xs">
+      <div className="min-h-screen bg-stone-950 text-stone-100 flex flex-col items-center justify-center p-6 space-y-5">
+        <AppLogo size="xl" showText={true} />
+        <div className="flex items-center gap-2 text-stone-400 text-xs pt-2">
           <div className="w-4 h-4 border-2 border-red-600 border-t-transparent rounded-full animate-spin"></div>
-          <span>Loading portal...</span>
+          <span>Loading News Bharat Plus...</span>
         </div>
       </div>
     );
@@ -189,8 +183,8 @@ export default function App() {
       return (
         <div className="min-h-screen bg-stone-900 text-stone-200 flex flex-col justify-center items-center p-4">
           <div className="bg-stone-950 border border-stone-800 rounded-2xl max-w-md w-full p-8 text-center space-y-5 shadow-2xl">
-            <div className="w-16 h-16 bg-red-600/20 text-red-500 rounded-full flex items-center justify-center mx-auto text-2xl font-black font-serif">
-              <Shield size={32} />
+            <div className="flex justify-center">
+              <AppLogo size="lg" forceTheme="dark" />
             </div>
             <div>
               <h1 className="text-xl sm:text-2xl font-bold text-white font-serif">

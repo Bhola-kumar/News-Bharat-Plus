@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import { useNewsStore } from '../../lib/newsStore';
 import { useLanguage } from '../../lib/i18n';
+import { AppLogo } from '../../components/AppLogo';
 
 export type AdminTab = 
   | 'dashboard' 
@@ -191,22 +192,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
         isDark ? 'bg-stone-900 text-stone-300 border-stone-800' : 'bg-white text-stone-700 border-stone-200'
       }`}>
         <div className={`p-4 border-b ${isDark ? 'border-stone-800' : 'border-stone-200'}`}>
-          <button
-            type="button"
-            onClick={() => onNavigatePublic('/')}
-            className="flex items-center gap-2.5 text-left w-full hover:opacity-80 transition-opacity cursor-pointer group"
-            title="Go to Public Home Page"
-          >
-            <Shield className="text-red-600 shrink-0 group-hover:scale-105 transition-transform" size={24} />
-            <div>
-              <h2 className={`font-bold text-sm font-serif group-hover:text-red-600 transition-colors ${
-                isDark ? 'text-white' : 'text-stone-900'
-              }`}>News Bharat Plus</h2>
-              <p className={`text-[10px] uppercase tracking-widest ${isDark ? 'text-stone-400' : 'text-stone-500'}`}>
-                {language === 'hi' ? 'संपादकीय एवं एडमिन पोर्टल' : 'Editorial & Admin Portal'}
-              </p>
-            </div>
-          </button>
+          <AppLogo size="sm" showText={true} onClick={() => onNavigatePublic('/')} />
         </div>
 
         <nav className="p-3 space-y-1 flex-1">
@@ -268,15 +254,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
             >
               {mobileMenuOpen ? <X size={18} /> : <Menu size={18} />}
             </button>
-            <button
-              type="button"
-              onClick={() => onNavigatePublic('/')}
-              className="flex items-center gap-2 text-left hover:opacity-80 transition-opacity cursor-pointer"
-              title="Go to Public Home Page"
-            >
-              <Shield className="text-red-600 shrink-0" size={20} />
-              <span className={`font-bold text-xs font-serif ${isDark ? 'text-white' : 'text-stone-900'}`}>News Bharat Plus</span>
-            </button>
+            <AppLogo size="xs" showText={true} onClick={() => onNavigatePublic('/')} />
           </div>
 
           <div className="flex items-center gap-2">
