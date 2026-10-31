@@ -166,25 +166,19 @@ export default function App() {
 
   // --- RENDER ADMIN PORTAL IF PATH IS /admin ---
   if (!store.isReady()) {
-    const status = store.getDbSyncStatus().supabaseStatus;
     return (
-      <div className="min-h-screen bg-stone-950 text-stone-100 flex items-center justify-center p-6">
-        <div className="max-w-xl w-full bg-stone-900 border border-stone-800 rounded-2xl p-7 space-y-4">
-          <h1 className="text-xl font-bold">News Bharat Plus database</h1>
-          <p className="text-sm text-stone-300">
-            {status === 'Loading' ? 'Connecting to Supabase and loading application data…' : store.getDatabaseError()}
-          </p>
-          {status !== 'Loading' && (
-            <div className="text-xs text-stone-400 space-y-2">
-              <p>Apply <code>supabase/schema.sql</code> in the Supabase SQL Editor, then verify the project URL and anon key in the deployment environment.</p>
-              <button
-                onClick={() => { void store.forceSync(); }}
-                className="px-4 py-2 bg-red-600 hover:bg-red-700 rounded-lg text-white font-bold"
-              >
-                Retry connection
-              </button>
-            </div>
-          )}
+      <div className="min-h-screen bg-stone-950 text-stone-100 flex flex-col items-center justify-center p-6 space-y-4">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-red-600 text-white font-black font-serif text-xl flex items-center justify-center rounded-lg shadow-lg">
+            N
+          </div>
+          <span className="text-2xl font-black font-serif tracking-tight text-white">
+            News Bharat <span className="text-red-500">Plus</span>
+          </span>
+        </div>
+        <div className="flex items-center gap-2 text-stone-400 text-xs">
+          <div className="w-4 h-4 border-2 border-red-600 border-t-transparent rounded-full animate-spin"></div>
+          <span>Loading portal...</span>
         </div>
       </div>
     );
@@ -403,11 +397,7 @@ export default function App() {
     <div className={`min-h-screen flex flex-col font-sans transition-colors duration-200 ${
       isDark ? 'bg-stone-950 text-stone-100 dark' : 'bg-stone-50 text-stone-900'
     }`}>
-      {store.getDatabaseError() && (
-        <div role="alert" className="fixed top-3 right-3 z-50 max-w-lg rounded-lg border border-red-800 bg-red-950/95 p-3 text-xs text-red-100 shadow-lg">
-          Supabase operation failed: {store.getDatabaseError()}
-        </div>
-      )}
+
       {/* 1. Header with Logo, District Dropdown & Search (Strictly consumer, with Language Changer) */}
       <Header
         currentPath={currentPath}

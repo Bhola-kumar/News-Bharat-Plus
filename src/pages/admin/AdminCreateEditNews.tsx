@@ -709,7 +709,55 @@ export const AdminCreateEditNews: React.FC<AdminCreateEditNewsProps> = ({
                   />
                 </div>
               )}
+
+              <div className="pt-2 space-y-2">
+                <button
+                  type="button"
+                  onClick={() => handleSave('published')}
+                  className="w-full py-2.5 bg-red-600 hover:bg-red-700 text-white font-bold uppercase tracking-wider text-xs rounded-lg shadow-md flex items-center justify-center gap-2 cursor-pointer transition-colors"
+                >
+                  <Save size={14} />
+                  <span>{saveSuccessMsg ? 'Published!' : 'Publish Now'}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleSave('draft')}
+                  className="w-full py-2 bg-stone-800 hover:bg-stone-700 text-stone-300 font-semibold text-xs rounded-lg cursor-pointer transition-colors"
+                >
+                  Save as Draft
+                </button>
+              </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Bottom Sticky Action Toolbar */}
+      {activeTab === 'editor' && (
+        <div className="sticky bottom-4 z-40 bg-stone-900/95 backdrop-blur-md border border-stone-800 p-3.5 rounded-xl shadow-2xl flex flex-wrap items-center justify-between gap-3">
+          <button
+            type="button"
+            onClick={onBack}
+            className="px-4 py-2 bg-stone-800 hover:bg-stone-700 text-stone-300 text-xs font-semibold rounded-lg cursor-pointer transition-colors"
+          >
+            ← Back to Manage News
+          </button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => handleSave('draft')}
+              className="px-4 py-2 bg-stone-800 hover:bg-stone-700 text-stone-200 text-xs font-bold rounded-lg cursor-pointer transition-colors"
+            >
+              Save Draft
+            </button>
+            <button
+              type="button"
+              onClick={() => handleSave('published')}
+              className="px-5 py-2 bg-red-600 hover:bg-red-700 text-white text-xs font-bold uppercase tracking-wider rounded-lg shadow-lg flex items-center gap-1.5 cursor-pointer transition-colors"
+            >
+              <Save size={15} />
+              <span>{saveSuccessMsg ? 'Published!' : 'Publish Now'}</span>
+            </button>
           </div>
         </div>
       )}
