@@ -21,6 +21,8 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
   title 
 }) => {
   const [isPlaying, setIsPlaying] = useState(false);
+  const [directVideoFailed, setDirectVideoFailed] = useState(false);
+  const [embedFailed, setEmbedFailed] = useState(false);
   const parsed = parseVideoUrl(url);
 
   if (!parsed.isValid) {
@@ -28,24 +30,51 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
       <div className="bg-stone-100 border border-stone-300 rounded-lg p-4 text-center my-4">
         <AlertCircle size={28} className="mx-auto text-amber-600 mb-2" />
         <p className="text-sm text-stone-700 font-medium">This video format is invalid or unsupported.</p>
-        <a 
-          href={url} 
-          target="_blank" 
-          rel="noopener noreferrer" 
-          className="inline-flex items-center gap-1.5 mt-2 text-xs font-semibold text-red-600 hover:text-red-800"
-        >
-          <span>Watch on original source</span>
-          <ExternalLink size={13} />
-        </a>
+        {parsed.externalUrl && (
+          <a
+            href={parsed.externalUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 mt-2 text-xs font-semibold text-red-600 hover:text-red-800"
+          >
+            <span>Watch on original source</span>
+            <ExternalLink size={13} />
+          </a>
+        )}
       </div>
     );
   }
 
+  const providerName = parsed.provider === 'direct' ? 'video source' : parsed.provider;
+
   return (
     <div className="my-5 rounded-xl overflow-hidden border border-stone-200 bg-stone-900 shadow-sm">
       <div className="relative aspect-video w-full bg-stone-950 flex items-center justify-center">
-        {!isPlaying ? (
-          <div className="relative w-full h-full flex items-center justify-center group cursor-pointer" onClick={() => setIsPlaying(true)}>
+        {parsed.provider === 'direct' ? (
+          directVideoFailed ? (
+            <div className="p-6 text-center text-white">
+              <AlertCircle size={28} className="mx-auto text-amber-400 mb-2" />
+              <p className="text-sm font-medium">This video could not be played in the browser.</p>
+              <p className="mt-1 text-xs text-stone-300">The file may be unavailable or use an unsupported encoding.</p>
+            </div>
+          ) : (
+            <video
+              src={parsed.externalUrl}
+              poster={thumbnailUrl}
+              controls
+              playsInline
+              preload="metadata"
+              className="w-full h-full"
+              onError={() => setDirectVideoFailed(true)}
+            />
+          )
+        ) : !isPlaying ? (
+          <button
+            type="button"
+            className="relative w-full h-full flex items-center justify-center group cursor-pointer"
+            onClick={() => setIsPlaying(true)}
+            aria-label={`Play ${title || 'video'} on ${providerName}`}
+          >
             {thumbnailUrl ? (
               <img 
                 src={thumbnailUrl} 
@@ -58,27 +87,31 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
             )}
 
             <div className="absolute inset-0 flex items-center justify-center bg-black/30 group-hover:bg-black/20 transition-all">
-              <button 
-                type="button"
-                className="w-16 h-16 sm:w-20 sm:h-20 bg-red-600 hover:bg-red-700 text-white rounded-full flex items-center justify-center shadow-2xl transform group-hover:scale-105 transition-transform"
-                aria-label="Play Video"
-              >
+              <span className="w-16 h-16 sm:w-20 sm:h-20 bg-red-600 hover:bg-red-700 text-white rounded-full flex items-center justify-center shadow-2xl transform group-hover:scale-105 transition-transform">
                 <Play size={32} className="ml-1 fill-white" />
-              </button>
+              </span>
             </div>
 
             <div className="absolute top-3 left-3 bg-black/70 backdrop-blur-xs text-white text-xs px-2.5 py-1 rounded-md flex items-center gap-1.5 font-medium">
-              <span className="capitalize">{parsed.provider}</span>
+              <span className="capitalize">{providerName}</span>
               <span className="text-stone-400">· Click to play</span>
             </div>
+          </button>
+        ) : embedFailed ? (
+          <div className="p-6 text-center text-white">
+            <AlertCircle size={28} className="mx-auto text-amber-400 mb-2" />
+            <p className="text-sm font-medium">The video player could not be loaded.</p>
+            <p className="mt-1 text-xs text-stone-300">It may be private, restricted, or unavailable for embedding.</p>
           </div>
         ) : (
           <iframe
             src={parsed.embedUrl}
             title={title || 'Video Player'}
             className="w-full h-full border-0"
-            allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
             allowFullScreen
+            referrerPolicy="strict-origin-when-cross-origin"
+            onError={() => setEmbedFailed(true)}
           />
         )}
       </div>
@@ -94,9 +127,12 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
             rel="noopener noreferrer"
             className="flex items-center gap-1.5 px-3 py-1.5 bg-stone-800 hover:bg-stone-700 text-stone-200 rounded text-xs font-medium transition-colors"
           >
-            <span>Watch on {parsed.provider === 'youtube' ? 'YouTube' : 'Facebook'}</span>
+            <span>Open on {providerName}</span>
             <ExternalLink size={12} />
           </a>
+          {parsed.provider !== 'direct' && !embedFailed && (
+            <span className="hidden sm:inline text-stone-400">If playback is blocked, open the source video.</span>
+          )}
         </div>
       </div>
     </div>

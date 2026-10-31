@@ -29,6 +29,7 @@ export const AdminAdManager: React.FC = () => {
   const mobileFileInputRef = useRef<HTMLInputElement>(null);
   const [showMediaModal, setShowMediaModal] = useState<'desktop' | 'mobile' | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadError, setUploadError] = useState('');
 
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingAd, setEditingAd] = useState<AdCampaign | null>(null);
@@ -47,15 +48,20 @@ export const AdminAdManager: React.FC = () => {
 
   const handleDesktopUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
+    e.target.value = '';
     if (!file) return;
     setIsUploading(true);
+    setUploadError('');
     try {
-      const compressedDataUrl = await compressImageFile(file, 1200, 600, 0.82);
-      setDesktopBannerUrl(compressedDataUrl);
-      if (!mobileBannerUrl) setMobileBannerUrl(compressedDataUrl);
-      await store.uploadMedia(file.name, compressedDataUrl, file.size);
+      const compressedImage = await compressImageFile(file, 1200, 600, 0.82);
+      const asset = await store.uploadMedia(file.name, compressedImage);
+      if (!asset) throw new Error(store.getDatabaseError() || 'Supabase Storage upload failed.');
+      setDesktopBannerUrl(asset.url);
+      if (!mobileBannerUrl) setMobileBannerUrl(asset.url);
     } catch (err) {
-      console.error('Failed to compress desktop banner:', err);
+      const message = err instanceof Error ? err.message : 'Unexpected image upload error.';
+      setUploadError(message);
+      console.error('Failed to upload desktop banner:', err);
     } finally {
       setIsUploading(false);
     }
@@ -63,20 +69,26 @@ export const AdminAdManager: React.FC = () => {
 
   const handleMobileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
+    e.target.value = '';
     if (!file) return;
     setIsUploading(true);
+    setUploadError('');
     try {
-      const compressedDataUrl = await compressImageFile(file, 800, 600, 0.82);
-      setMobileBannerUrl(compressedDataUrl);
-      await store.uploadMedia(file.name, compressedDataUrl, file.size);
+      const compressedImage = await compressImageFile(file, 800, 600, 0.82);
+      const asset = await store.uploadMedia(file.name, compressedImage);
+      if (!asset) throw new Error(store.getDatabaseError() || 'Supabase Storage upload failed.');
+      setMobileBannerUrl(asset.url);
     } catch (err) {
-      console.error('Failed to compress mobile banner:', err);
+      const message = err instanceof Error ? err.message : 'Unexpected image upload error.';
+      setUploadError(message);
+      console.error('Failed to upload mobile banner:', err);
     } finally {
       setIsUploading(false);
     }
   };
 
   const openCreateForm = () => {
+    setUploadError('');
     setEditingAd(null);
     setTitle('');
     setAdvertiserName('');
@@ -93,6 +105,7 @@ export const AdminAdManager: React.FC = () => {
   };
 
   const openEditForm = (ad: AdCampaign) => {
+    setUploadError('');
     setEditingAd(ad);
     setTitle(ad.title);
     setAdvertiserName(ad.advertiserName);
@@ -137,6 +150,7 @@ export const AdminAdManager: React.FC = () => {
     });
 
     if (saved) setIsFormOpen(false);
+    else setUploadError(store.getDatabaseError() || 'The advertisement could not be saved.');
   };
 
   return (
@@ -273,6 +287,11 @@ export const AdminAdManager: React.FC = () => {
             </h2>
 
             <form onSubmit={handleSave} className="space-y-4 text-xs">
+              {uploadError && (
+                <p role="alert" className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-red-700">
+                  Image upload failed: {uploadError}
+                </p>
+              )}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block font-bold text-stone-700 mb-1">Campaign Title *</label>
@@ -318,7 +337,7 @@ export const AdminAdManager: React.FC = () => {
                 <input
                   type="file"
                   ref={desktopFileInputRef}
-                  accept="image/*"
+                  accept="image/jpeg,image/png,image/webp"
                   onChange={handleDesktopUpload}
                   className="hidden"
                 />
@@ -398,7 +417,7 @@ export const AdminAdManager: React.FC = () => {
                 <input
                   type="file"
                   ref={mobileFileInputRef}
-                  accept="image/*"
+                  accept="image/jpeg,image/png,image/webp"
                   onChange={handleMobileUpload}
                   className="hidden"
                 />

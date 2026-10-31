@@ -140,21 +140,19 @@ export const AdminCreateEditNews: React.FC<AdminCreateEditNewsProps> = ({
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
+    e.target.value = '';
     if (!file) return;
-
-    if (!file.type.startsWith('image/')) {
-      alert('Please select an image file (e.g. JPG, PNG, WEBP).');
-      return;
-    }
 
     setIsUploadingImage(true);
     try {
-      const compressedDataUrl = await compressImageFile(file, 1200, 1200, 0.80);
-      setCoverImageUrl(compressedDataUrl);
-      await store.uploadMedia(file.name, compressedDataUrl, file.size);
+      const compressedImage = await compressImageFile(file, 1200, 1200, 0.80);
+      const asset = await store.uploadMedia(file.name, compressedImage);
+      if (!asset) throw new Error(store.getDatabaseError() || 'Supabase Storage upload failed.');
+      setCoverImageUrl(asset.url);
     } catch (err) {
-      console.error('Failed to compress/upload image:', err);
-      alert('Failed to process image file.');
+      const message = err instanceof Error ? err.message : 'Unexpected image upload error.';
+      console.error('Failed to upload article image:', err);
+      alert(`Image upload failed: ${message}`);
     } finally {
       setIsUploadingImage(false);
     }
@@ -182,6 +180,10 @@ export const AdminCreateEditNews: React.FC<AdminCreateEditNewsProps> = ({
     }
     if (!body.trim()) {
       alert('Please enter the article body content.');
+      return;
+    }
+    if (videoUrl.trim() && !videoParsed?.isValid) {
+      alert(videoParsed?.error || 'Enter a supported video URL or remove the video link.');
       return;
     }
 
@@ -232,6 +234,7 @@ export const AdminCreateEditNews: React.FC<AdminCreateEditNewsProps> = ({
 
       if (!saved) {
         setIsSaving(null);
+        alert(store.getDatabaseError() || 'The article could not be saved.');
         return;
       }
       setSaveSuccessMsg(true);
@@ -492,7 +495,7 @@ export const AdminCreateEditNews: React.FC<AdminCreateEditNewsProps> = ({
                   <input
                     type="file"
                     ref={fileInputRef}
-                    accept="image/*"
+                    accept="image/jpeg,image/png,image/webp"
                     onChange={handleFileUpload}
                     className="hidden"
                   />
@@ -555,15 +558,18 @@ export const AdminCreateEditNews: React.FC<AdminCreateEditNewsProps> = ({
             <div className="p-4 bg-stone-950 border border-stone-800 rounded-xl space-y-3">
               <span className="text-xs font-bold text-white flex items-center gap-1.5">
                 <Video size={15} className="text-red-500" />
-                <span>YouTube / Video Link (Optional)</span>
+                <span>Video Link (Optional)</span>
               </span>
               <input
                 type="text"
                 value={videoUrl}
                 onChange={(e) => setVideoUrl(e.target.value)}
-                placeholder="https://www.youtube.com/watch?v=..."
+                placeholder="YouTube, Facebook, Instagram, Vimeo, TikTok, or direct video URL"
                 className="w-full px-3 py-2 text-xs bg-stone-900 border border-stone-700 rounded-lg text-white placeholder-stone-500 focus:ring-2 focus:ring-red-500"
               />
+              <p className="text-[11px] text-stone-400">
+                Public videos only. Direct MP4, WebM, and Ogg links work; private videos and sites that block embedding must be opened on their source.
+              </p>
 
               {videoParsed && (
                 <div className="text-xs">

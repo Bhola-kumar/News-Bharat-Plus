@@ -50,8 +50,8 @@ export interface Article {
     caption?: string;
     credit?: string;
   }[];
-  videoUrl?: string; // YouTube or Facebook
-  videoProvider?: 'youtube' | 'facebook';
+  videoUrl?: string;
+  videoProvider?: 'youtube' | 'facebook' | 'instagram' | 'vimeo' | 'tiktok' | 'direct';
   videoSummary?: string;
   coverage: CoverageType;
   state: string; // 'Bihar' or 'All India'
@@ -106,6 +106,7 @@ export interface AdCampaign {
 export interface MediaAsset {
   id: string;
   filename: string;
+  storagePath: string;
   url: string;
   fileSizeBytes: number;
   dimensions?: { width: number; height: number };

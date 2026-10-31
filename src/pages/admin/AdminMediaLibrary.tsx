@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { 
   Image as ImageIcon, 
   Upload, 
@@ -14,14 +14,18 @@ import {
   Info
 } from 'lucide-react';
 import { useNewsStore, CleanupLog } from '../../lib/newsStore';
+import { compressImageFile } from '../../lib/imageCompression';
 
 export const AdminMediaLibrary: React.FC = () => {
   const store = useNewsStore();
   const mediaList = store.getMedia();
   const cleanupHistory = store.getCleanupHistory();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [uploadUrl, setUploadUrl] = useState('');
   const [uploadFilename, setUploadFilename] = useState('');
+  const [uploadError, setUploadError] = useState('');
+  const [isUploading, setIsUploading] = useState(false);
   const [lastCleanupResult, setLastCleanupResult] = useState<CleanupLog | null>(null);
   const [isCleaning, setIsCleaning] = useState(false);
 
@@ -29,10 +33,40 @@ export const AdminMediaLibrary: React.FC = () => {
     e.preventDefault();
     if (!uploadUrl.trim() || !uploadFilename.trim()) return;
 
-    const saved = await store.uploadMedia(uploadFilename.trim(), uploadUrl.trim());
-    if (!saved) return;
+    setUploadError('');
+    const saved = await store.registerExternalMedia(uploadFilename.trim(), uploadUrl.trim());
+    if (!saved) {
+      setUploadError(store.getDatabaseError() || 'Unable to register the external image URL.');
+      return;
+    }
     setUploadUrl('');
     setUploadFilename('');
+  };
+
+  const handleDeviceUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+
+    setIsUploading(true);
+    setUploadError('');
+    try {
+      const compressedImage = await compressImageFile(file);
+      const saved = await store.uploadMedia(file.name, compressedImage);
+      if (!saved) throw new Error(store.getDatabaseError() || 'Supabase Storage upload failed.');
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unexpected image upload error.';
+      setUploadError(message);
+      console.error('Failed to upload media library image:', error);
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleDeleteMedia = async (id: string) => {
+    setUploadError('');
+    const deleted = await store.deleteMedia(id);
+    if (!deleted) setUploadError(store.getDatabaseError() || 'Unable to delete this media asset.');
   };
 
   const handleRunCleanup = async () => {
@@ -42,7 +76,8 @@ export const AdminMediaLibrary: React.FC = () => {
     setIsCleaning(false);
   };
 
-  const totalBytes = mediaList.reduce((acc, m) => acc + m.fileSizeBytes, 0);
+  const storedMedia = mediaList.filter(asset => /^[0-9a-f-]{36}\/[0-9a-f-]{36}\.jpg$/i.test(asset.storagePath));
+  const totalBytes = storedMedia.reduce((acc, m) => acc + m.fileSizeBytes, 0);
   const totalMB = (totalBytes / (1024 * 1024)).toFixed(2);
 
   return (
@@ -98,10 +133,27 @@ export const AdminMediaLibrary: React.FC = () => {
         <div className="lg:col-span-8 bg-stone-900 border border-stone-800 rounded-xl p-5 shadow-lg space-y-4 text-stone-200">
           <h3 className="font-bold text-sm text-white flex items-center gap-2">
             <Upload size={16} className="text-red-500" />
-            <span>Add Asset / External Image URL</span>
+            <span>Upload to Supabase Storage</span>
           </h3>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            onChange={handleDeviceUpload}
+            className="hidden"
+          />
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={isUploading}
+            className="px-4 py-2 bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white font-bold rounded-lg text-xs"
+          >
+            {isUploading ? 'Compressing and uploading...' : 'Choose image from device'}
+          </button>
+          <p className="text-[11px] text-stone-400">JPG, PNG, or WEBP; images are compressed and stored in the news-media bucket.</p>
 
-          <form onSubmit={handleUpload} className="grid grid-cols-1 sm:grid-cols-12 gap-3 text-xs">
+          <form onSubmit={handleUpload} className="grid grid-cols-1 sm:grid-cols-12 gap-3 text-xs border-t border-stone-800 pt-3">
+            <p className="sm:col-span-12 text-[11px] text-stone-400">Register an externally hosted image URL (the file itself remains hosted elsewhere).</p>
             <input
               type="text"
               required
@@ -125,16 +177,17 @@ export const AdminMediaLibrary: React.FC = () => {
               Add Asset
             </button>
           </form>
+          {uploadError && <p role="alert" className="text-xs text-red-400">{uploadError}</p>}
         </div>
 
         <div className="lg:col-span-4 bg-stone-900 border border-stone-800 rounded-xl p-5 shadow-lg space-y-2 text-xs text-stone-300">
           <h3 className="font-bold text-white border-b border-stone-800 pb-2">Storage Usage Stats</h3>
           <div className="flex justify-between">
-            <span>Total Media Files:</span>
-            <span className="font-bold text-white font-mono">{mediaList.length}</span>
+            <span>Files in Supabase Storage:</span>
+            <span className="font-bold text-white font-mono">{storedMedia.length}</span>
           </div>
           <div className="flex justify-between">
-            <span>Estimated Disk Usage:</span>
+            <span>Uploaded file size:</span>
             <span className="font-bold text-white font-mono">{totalMB} MB</span>
           </div>
         </div>
@@ -186,7 +239,7 @@ export const AdminMediaLibrary: React.FC = () => {
                   {asset.cleanupEligible ? 'Eligible for Cleanup' : 'Active / Preserved'}
                 </span>
                 <button
-                  onClick={() => store.deleteMedia(asset.id)}
+                onClick={() => void handleDeleteMedia(asset.id)}
                   className="p-1 text-red-400 hover:text-red-300 rounded cursor-pointer"
                   title="Delete Media"
                 >

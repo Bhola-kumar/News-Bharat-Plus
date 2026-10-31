@@ -23,6 +23,8 @@ import { supabase, isSupabaseConfigured } from './supabase';
 
 type DbRow = Record<string, unknown>;
 type DbStatus = 'Loading' | 'Connected' | 'Not Configured' | 'Error';
+const MEDIA_BUCKET = 'news-media';
+const STORAGE_OBJECT_PATH_PATTERN = /^[0-9a-f-]{36}\/[0-9a-f-]{36}\.jpg$/i;
 type UsageEvent =
   | 'page_view'
   | 'story_card_download'
@@ -150,7 +152,9 @@ function mapArticle(row: DbRow): Article {
     coverImageCredit: optionalString(row.cover_image_credit),
     galleryImages: Array.isArray(row.gallery_images) ? row.gallery_images as Article['galleryImages'] : [],
     videoUrl: optionalString(row.video_url),
-    videoProvider: row.video_provider === 'youtube' || row.video_provider === 'facebook' ? row.video_provider : undefined,
+    videoProvider: ['youtube', 'facebook', 'instagram', 'vimeo', 'tiktok', 'direct'].includes(stringValue(row.video_provider))
+      ? row.video_provider as Article['videoProvider']
+      : undefined,
     videoSummary: optionalString(row.video_summary),
     coverage: row.coverage === 'National' ? 'National' : 'Regional',
     state: stringValue(row.state),
@@ -265,6 +269,7 @@ function mapMedia(row: DbRow): MediaAsset {
   return {
     id: stringValue(row.id),
     filename: stringValue(row.filename),
+    storagePath: stringValue(row.storage_path),
     url: stringValue(row.url),
     fileSizeBytes: numberValue(row.file_size_bytes),
     dimensions: dimensions?.width && dimensions.height
@@ -326,38 +331,113 @@ export function calculateTrendingScore(views: number, shares: number, publishedA
 
 export function parseVideoUrl(url: string): {
   isValid: boolean;
-  provider?: 'youtube' | 'facebook';
+  provider?: 'youtube' | 'facebook' | 'instagram' | 'vimeo' | 'tiktok' | 'direct';
   embedUrl?: string;
   externalUrl: string;
   videoId?: string;
   error?: string;
 } {
   const trimmed = url.trim();
-  if (!trimmed) return { isValid: false, externalUrl: '', error: 'URL cannot be empty' };
+  if (!trimmed) return { isValid: false, externalUrl: '', error: 'URL cannot be empty.' };
 
-  const ytMatch = trimmed.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/i);
-  if (ytMatch?.[1]) {
-    const videoId = ytMatch[1];
-    return {
-      isValid: true,
-      provider: 'youtube',
-      videoId,
-      embedUrl: `https://www.youtube-nocookie.com/embed/${videoId}?rel=0&modestbranding=1`,
-      externalUrl: `https://www.youtube.com/watch?v=${videoId}`
-    };
+  let parsedUrl: URL;
+  try {
+    parsedUrl = new URL(/^[a-z][a-z\d+.-]*:/i.test(trimmed) ? trimmed : `https://${trimmed}`);
+  } catch {
+    return { isValid: false, externalUrl: '', error: 'Enter a valid video URL.' };
   }
-  if (/^(https?:\/\/)?(www\.)?(facebook\.com|fb\.watch)\//i.test(trimmed)) {
-    return {
-      isValid: true,
-      provider: 'facebook',
-      embedUrl: `https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(trimmed)}&show_text=false&width=560`,
-      externalUrl: trimmed
-    };
+  if (!['http:', 'https:'].includes(parsedUrl.protocol) || parsedUrl.username || parsedUrl.password) {
+    return { isValid: false, externalUrl: '', error: 'Video URLs must use HTTP or HTTPS.' };
   }
+
+  const host = parsedUrl.hostname.toLowerCase().replace(/^www\./, '');
+  const isHost = (domain: string) => host === domain || host.endsWith(`.${domain}`);
+  const externalUrl = parsedUrl.toString();
+  const pathParts = parsedUrl.pathname.split('/').filter(Boolean);
+
+  if (isHost('youtube.com') || isHost('youtube-nocookie.com') || host === 'youtu.be') {
+    const markerIndex = pathParts.findIndex(part => ['embed', 'shorts', 'live', 'v'].includes(part));
+    const videoId = host === 'youtu.be'
+      ? pathParts[0]
+      : parsedUrl.searchParams.get('v') || (markerIndex >= 0 ? pathParts[markerIndex + 1] : undefined);
+    if (videoId && /^[a-zA-Z0-9_-]{11}$/.test(videoId)) {
+      return {
+        isValid: true,
+        provider: 'youtube',
+        videoId,
+        embedUrl: `https://www.youtube-nocookie.com/embed/${videoId}?rel=0&playsinline=1`,
+        externalUrl: `https://www.youtube.com/watch?v=${videoId}`
+      };
+    }
+  }
+
+  if (isHost('facebook.com') || host === 'fb.watch') {
+    const isFacebookVideo = host === 'fb.watch' ||
+      pathParts.some(part => ['videos', 'watch', 'reel', 'reels'].includes(part)) ||
+      parsedUrl.searchParams.has('v') ||
+      (pathParts[0] === 'share' && ['v', 'r'].includes(pathParts[1]));
+    if (isFacebookVideo) {
+      const embedUrl = new URL('https://www.facebook.com/plugins/video.php');
+      embedUrl.searchParams.set('href', externalUrl);
+      embedUrl.searchParams.set('show_text', 'false');
+      embedUrl.searchParams.set('width', '560');
+      return { isValid: true, provider: 'facebook', embedUrl: embedUrl.toString(), externalUrl };
+    }
+  }
+
+  if (isHost('instagram.com')) {
+    const postIndex = pathParts.findIndex(part => ['p', 'reel', 'reels', 'tv'].includes(part));
+    const shortcode = pathParts[postIndex + 1];
+    if (postIndex >= 0 && shortcode && /^[\w-]+$/.test(shortcode)) {
+      const postType = pathParts[postIndex] === 'reels' ? 'reel' : pathParts[postIndex];
+      return {
+        isValid: true,
+        provider: 'instagram',
+        videoId: shortcode,
+        embedUrl: `https://www.instagram.com/${postType}/${shortcode}/embed/`,
+        externalUrl: `https://www.instagram.com/${postType}/${shortcode}/`
+      };
+    }
+  }
+
+  if (isHost('vimeo.com')) {
+    const videoIndex = pathParts.indexOf('video');
+    const videoId = host === 'player.vimeo.com' && videoIndex >= 0
+      ? pathParts[videoIndex + 1]
+      : host !== 'player.vimeo.com' ? pathParts.find(part => /^\d+$/.test(part)) : undefined;
+    if (videoId && /^\d+$/.test(videoId)) {
+      return {
+        isValid: true,
+        provider: 'vimeo',
+        videoId,
+        embedUrl: `https://player.vimeo.com/video/${videoId}`,
+        externalUrl: `https://vimeo.com/${videoId}`
+      };
+    }
+  }
+
+  if (isHost('tiktok.com')) {
+    const videoIndex = pathParts.indexOf('video');
+    const videoId = pathParts[videoIndex + 1];
+    if (videoIndex >= 0 && videoId && /^\d+$/.test(videoId)) {
+      return {
+        isValid: true,
+        provider: 'tiktok',
+        videoId,
+        embedUrl: `https://www.tiktok.com/player/v1/${videoId}`,
+        externalUrl
+      };
+    }
+  }
+
+  if (/\.(mp4|webm|ogv|ogg)$/i.test(parsedUrl.pathname)) {
+    return { isValid: true, provider: 'direct', externalUrl };
+  }
+
   return {
     isValid: false,
-    externalUrl: trimmed,
-    error: 'Only valid YouTube or Facebook video links are supported.'
+    externalUrl,
+    error: 'This URL cannot be embedded. Use a public YouTube, Facebook, Instagram, Vimeo, or TikTok video, or a direct MP4, WebM, or Ogg file URL.'
   };
 }
 
@@ -786,6 +866,12 @@ class NewsStore {
   }
 
   public async saveArticle(data: Partial<Article> & { headline: string; body: string }): Promise<Article | null> {
+    const imageUrls = [data.coverImageUrl, ...(data.galleryImages || []).map(image => image.url)];
+    if (imageUrls.some(url => typeof url === 'string' && /^\s*data:image\//i.test(url))) {
+      this.reportError(new Error('Inline image data is not supported. Upload the image to Supabase Storage or use an external image URL.'));
+      return null;
+    }
+
     const now = new Date().toISOString();
     const existing = data.id ? this.articles.find(article => article.id === data.id) : undefined;
     const slug = existing?.slug || `${(data.seoTitle || data.headline)
@@ -952,6 +1038,9 @@ class NewsStore {
   }
   public async saveAd(data: Partial<AdCampaign> & { title: string; advertiserName: string }): Promise<AdCampaign | null> {
     return this.run(async () => {
+      if ([data.desktopBannerUrl, data.mobileBannerUrl].some(url => typeof url === 'string' && /^\s*data:image\//i.test(url))) {
+        throw new Error('Inline image data is not supported. Upload the banner to Supabase Storage or use an external image URL.');
+      }
       const row = adToRow(data);
       const query = data.id
         ? this.client.from('ad_campaigns').update(row).eq('id', data.id)
@@ -1030,13 +1119,59 @@ class NewsStore {
       };
     });
   }
-  public async uploadMedia(filename: string, url: string, fileSizeBytes = 0): Promise<MediaAsset | null> {
+  public async uploadMedia(filename: string, file: Blob): Promise<MediaAsset | null> {
     return this.run(async () => {
+      const user = this.currentUser;
+      if (!user?.id) throw new Error('Sign in as an admin before uploading media.');
+      if (file.type !== 'image/jpeg' || file.size === 0) {
+        throw new Error('The image must be compressed to a non-empty JPEG before upload.');
+      }
+
+      const storagePath = `${user.id}/${crypto.randomUUID()}.jpg`;
+      const { error: uploadError } = await this.client.storage.from(MEDIA_BUCKET).upload(storagePath, file, {
+        contentType: file.type,
+        cacheControl: '31536000',
+        upsert: false
+      });
+      if (uploadError) throw uploadError;
+
+      const { data: publicUrl } = this.client.storage.from(MEDIA_BUCKET).getPublicUrl(storagePath);
+      try {
+        const { data, error } = await this.client.from('media_assets').insert({
+          filename,
+          storage_path: storagePath,
+          url: publicUrl.publicUrl,
+          file_size_bytes: file.size,
+          uploaded_by: user.id,
+          uploaded_by_name: user.name || '',
+          dimensions: null
+        }).select('*').single();
+        if (error) throw error;
+        const asset = mapMedia(data as unknown as DbRow);
+        this.media.unshift(asset);
+        return asset;
+      } catch (error) {
+        const { error: cleanupError } = await this.client.storage.from(MEDIA_BUCKET).remove([storagePath]);
+        if (cleanupError) {
+          const reason = error instanceof Error ? error.message : String(error);
+          throw new Error(`Media metadata could not be saved (${reason}); uploaded file cleanup also failed (${cleanupError.message}).`);
+        }
+        throw error;
+      }
+    }, null);
+  }
+
+  public async registerExternalMedia(filename: string, url: string): Promise<MediaAsset | null> {
+    return this.run(async () => {
+      const parsedUrl = new URL(url);
+      if (parsedUrl.protocol !== 'https:' && parsedUrl.protocol !== 'http:') {
+        throw new Error('External media must use an HTTP or HTTPS URL.');
+      }
       const { data, error } = await this.client.from('media_assets').insert({
         filename,
-        storage_path: url,
-        url,
-        file_size_bytes: fileSizeBytes,
+        storage_path: `external:${parsedUrl.toString()}`,
+        url: parsedUrl.toString(),
+        file_size_bytes: 0,
         uploaded_by: this.currentUser?.id || null,
         uploaded_by_name: this.currentUser?.name || '',
         dimensions: null
@@ -1060,6 +1195,16 @@ class NewsStore {
   }
   public async deleteMedia(id: string) {
     return this.run(async () => {
+      const asset = this.media.find(item => item.id === id);
+      if (!asset) throw new Error('Media asset not found.');
+      const references = this.getMedia().find(item => item.id === id);
+      if ((references?.articleReferencesCount || 0) + (references?.adReferencesCount || 0) > 0) {
+        throw new Error('This media is still used by an article or advertisement and cannot be deleted.');
+      }
+      if (STORAGE_OBJECT_PATH_PATTERN.test(asset.storagePath)) {
+        const { error: storageError } = await this.client.storage.from(MEDIA_BUCKET).remove([asset.storagePath]);
+        if (storageError) throw storageError;
+      }
       const { error } = await this.client.from('media_assets').delete().eq('id', id);
       if (error) throw error;
       this.media = this.media.filter(asset => asset.id !== id);
@@ -1251,7 +1396,7 @@ class NewsStore {
         for (const item of data.media as MediaAsset[]) {
           const row: DbRow = {
             filename: item.filename,
-            storage_path: item.url,
+            storage_path: item.storagePath || item.url,
             url: item.url,
             file_size_bytes: item.fileSizeBytes || 0,
             dimensions: item.dimensions || null,

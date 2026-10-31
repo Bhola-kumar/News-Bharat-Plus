@@ -117,7 +117,7 @@ CREATE TABLE IF NOT EXISTS public.articles (
   cover_image_credit TEXT,
   gallery_images JSONB NOT NULL DEFAULT '[]'::jsonb,
   video_url TEXT,
-  video_provider TEXT CHECK (video_provider IN ('youtube', 'facebook') OR video_provider IS NULL),
+  video_provider TEXT CHECK (video_provider IN ('youtube', 'facebook', 'instagram', 'vimeo', 'tiktok', 'direct') OR video_provider IS NULL),
   video_summary TEXT,
   coverage public.coverage_type NOT NULL DEFAULT 'Regional',
   state TEXT NOT NULL DEFAULT 'Bihar',
@@ -147,6 +147,9 @@ CREATE TABLE IF NOT EXISTS public.articles (
 );
 
 ALTER TABLE public.articles ADD COLUMN IF NOT EXISTS status_before_delete public.article_status;
+ALTER TABLE public.articles DROP CONSTRAINT IF EXISTS articles_video_provider_check;
+ALTER TABLE public.articles ADD CONSTRAINT articles_video_provider_check
+  CHECK (video_provider IN ('youtube', 'facebook', 'instagram', 'vimeo', 'tiktok', 'direct') OR video_provider IS NULL);
 DROP INDEX IF EXISTS idx_articles_cover_image_url;
 DROP INDEX IF EXISTS idx_articles_cover;
 DROP INDEX IF EXISTS idx_ad_campaigns_desktop_banner_url;
@@ -317,6 +320,30 @@ AS $$
     WHERE id = auth.uid() AND role = 'admin'
   );
 $$;
+
+INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+VALUES (
+  'news-media',
+  'news-media',
+  TRUE,
+  5242880,
+  ARRAY['image/jpeg', 'image/png', 'image/webp']
+)
+ON CONFLICT (id) DO UPDATE SET
+  name = EXCLUDED.name,
+  public = EXCLUDED.public,
+  file_size_limit = EXCLUDED.file_size_limit,
+  allowed_mime_types = EXCLUDED.allowed_mime_types;
+
+DROP POLICY IF EXISTS "Admins upload news media" ON storage.objects;
+CREATE POLICY "Admins upload news media" ON storage.objects
+FOR INSERT TO authenticated
+WITH CHECK (bucket_id = 'news-media' AND public.is_staff());
+
+DROP POLICY IF EXISTS "Admins delete news media" ON storage.objects;
+CREATE POLICY "Admins delete news media" ON storage.objects
+FOR DELETE TO authenticated
+USING (bucket_id = 'news-media' AND public.is_staff());
 
 CREATE OR REPLACE FUNCTION public.handle_new_auth_user()
 RETURNS TRIGGER
