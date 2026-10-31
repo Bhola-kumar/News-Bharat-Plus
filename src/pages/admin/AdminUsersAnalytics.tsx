@@ -99,17 +99,18 @@ export const AdminUsersAnalytics: React.FC = () => {
   return (
     <div className="space-y-6 min-w-0">
       {/* Top Banner & Control Bar */}
-      <div className={`border rounded-2xl p-4 sm:p-5 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4 transition-colors duration-200 ${
+      <div className={`border rounded-2xl p-4 sm:p-5 shadow-sm space-y-4 transition-colors duration-200 ${
         isDark ? 'bg-stone-900 border-stone-800' : 'bg-white border-stone-200'
       }`}>
-        <div>
-          <div className="flex items-center gap-2.5">
+        {/* Title and Realtime Status Header Row */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-3 min-w-0">
             <div className="w-10 h-10 rounded-xl bg-red-600/20 text-red-500 flex items-center justify-center font-bold shrink-0">
               <Activity size={22} className="animate-pulse" />
             </div>
             <div className="min-w-0">
               <div className="flex items-center flex-wrap gap-2">
-                <h1 className={`text-lg sm:text-2xl font-bold font-serif truncate ${isDark ? 'text-white' : 'text-stone-900'}`}>
+                <h1 className={`text-lg sm:text-2xl font-bold font-serif ${isDark ? 'text-white' : 'text-stone-900'}`}>
                   Active Users & Live Analytics
                 </h1>
                 <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-950 text-emerald-400 border border-emerald-800 shrink-0">
@@ -122,48 +123,68 @@ export const AdminUsersAnalytics: React.FC = () => {
               </p>
             </div>
           </div>
+
+          <div className="flex items-center gap-2 shrink-0">
+            <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-semibold border ${
+              dbStatus.supabaseStatus === 'Connected'
+                ? 'bg-emerald-950/60 text-emerald-400 border-emerald-800/80'
+                : 'bg-amber-950/60 text-amber-400 border-amber-800/80'
+            }`}>
+              <span className={`w-2 h-2 rounded-full ${dbStatus.supabaseStatus === 'Connected' ? 'bg-emerald-400' : 'bg-amber-400'}`} />
+              Database: {dbStatus.supabaseStatus}
+            </span>
+          </div>
         </div>
 
-        {/* Global Action Buttons - Responsive Grid to prevent overflow */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 md:flex md:flex-wrap items-center gap-2 w-full md:w-auto shrink-0">
-          <button
-            onClick={handleForceSync}
-            className={`flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-xl border transition-colors cursor-pointer ${
-              isDark 
-                ? 'bg-stone-800 hover:bg-stone-700 text-stone-200 border-stone-700' 
-                : 'bg-stone-100 hover:bg-stone-200 text-stone-800 border-stone-300'
-            }`}
-          >
-            <RefreshCw size={14} />
-            <span>Force DB Sync</span>
-          </button>
+        {/* Dedicated Operations Bar Below - Fits comfortably across mobile, tablet & desktop */}
+        <div className={`pt-3.5 border-t flex flex-col md:flex-row md:items-center justify-between gap-3 ${
+          isDark ? 'border-stone-800' : 'border-stone-200'
+        }`}>
+          <div className={`flex items-center gap-2 text-xs font-semibold ${isDark ? 'text-stone-400' : 'text-stone-600'}`}>
+            <Database size={15} className="text-red-500 shrink-0" />
+            <span>Database Backup & Synchronization Controls:</span>
+          </div>
 
-          <button
-            onClick={handleExportBackup}
-            className={`flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-xl border transition-colors cursor-pointer ${
-              isDark 
-                ? 'bg-stone-800 hover:bg-stone-700 text-stone-200 border-stone-700' 
-                : 'bg-stone-100 hover:bg-stone-200 text-stone-800 border-stone-300'
-            }`}
-          >
-            <Download size={14} />
-            <span>Export Backup (.JSON)</span>
-          </button>
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              onClick={handleForceSync}
+              className={`flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-xl border transition-colors cursor-pointer ${
+                isDark 
+                  ? 'bg-stone-800 hover:bg-stone-700 text-stone-200 border-stone-700' 
+                  : 'bg-stone-100 hover:bg-stone-200 text-stone-800 border-stone-300'
+              }`}
+            >
+              <RefreshCw size={14} />
+              <span>Force DB Sync</span>
+            </button>
 
-          <button
-            onClick={() => fileInputRef.current?.click()}
-            className="flex items-center justify-center gap-1.5 px-3 py-2 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-xl transition-colors shadow-xs cursor-pointer"
-          >
-            <Upload size={14} />
-            <span>Restore DB</span>
-          </button>
-          <input
-            type="file"
-            ref={fileInputRef}
-            onChange={handleImportFile}
-            accept=".json,application/json"
-            className="hidden"
-          />
+            <button
+              onClick={handleExportBackup}
+              className={`flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-xl border transition-colors cursor-pointer ${
+                isDark 
+                  ? 'bg-stone-800 hover:bg-stone-700 text-stone-200 border-stone-700' 
+                  : 'bg-stone-100 hover:bg-stone-200 text-stone-800 border-stone-300'
+              }`}
+            >
+              <Download size={14} />
+              <span>Export Backup (.JSON)</span>
+            </button>
+
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              className="flex items-center justify-center gap-1.5 px-3 py-2 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-xl transition-colors shadow-xs cursor-pointer"
+            >
+              <Upload size={14} />
+              <span>Restore DB</span>
+            </button>
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleImportFile}
+              accept=".json,application/json"
+              className="hidden"
+            />
+          </div>
         </div>
       </div>
 

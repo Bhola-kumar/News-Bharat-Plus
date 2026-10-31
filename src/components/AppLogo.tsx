@@ -89,14 +89,14 @@ export const AppLogo: React.FC<AppLogoProps> = ({
       </div>
 
       {showText && (
-        <div className="flex flex-col text-left">
-          <div className="flex items-baseline gap-2 font-black font-serif tracking-tight leading-none">
-            <span className={`${textSizes[size]} ${isDark ? 'text-red-500' : 'text-red-600'}`}>
+        <div className="flex flex-col text-left whitespace-nowrap min-w-0">
+          <div className="flex items-baseline gap-1.5 sm:gap-2 font-black font-serif tracking-tight leading-none whitespace-nowrap">
+            <span className={`${textSizes[size]} ${isDark ? 'text-red-500' : 'text-red-600'} whitespace-nowrap`}>
               News Bharat{' '}
-              <span className="text-amber-500 font-sans font-extrabold text-sm sm:text-base">PLUS</span>
+              <span className="text-amber-500 font-sans font-extrabold text-xs sm:text-base">PLUS</span>
             </span>
           </div>
-          <span className={`text-[10px] sm:text-xs font-bold uppercase tracking-widest mt-1 ${isDark ? 'text-stone-400' : 'text-stone-500'}`}>
+          <span className={`text-[10px] sm:text-xs font-bold uppercase tracking-widest mt-0.5 sm:mt-1 whitespace-nowrap ${isDark ? 'text-stone-400' : 'text-stone-500'}`}>
             न्यूज़ भारत प्लस
           </span>
         </div>

@@ -128,7 +128,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
         <div className="w-5 h-5 rounded-full bg-red-600 flex items-center justify-center text-white text-[10px] font-bold shrink-0">
           {displayName[0]?.toUpperCase() || 'A'}
         </div>
-        <span className="truncate max-w-[80px] sm:max-w-[140px] capitalize text-[11px] sm:text-xs">
+        <span className="truncate max-w-[65px] xs:max-w-[90px] sm:max-w-[140px] capitalize text-[11px] sm:text-xs">
           {displayName}
         </span>
         <ChevronDown size={13} className={`${isDark ? 'text-stone-400' : 'text-stone-600'} transition-transform ${userDropdownOpen ? 'rotate-180' : ''}`} />
@@ -243,21 +243,34 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
         <header className={`md:hidden border-b px-4 py-2.5 flex items-center justify-between sticky top-0 z-40 ${
           isDark ? 'bg-stone-900 border-stone-800 text-stone-200' : 'bg-white border-stone-200 text-stone-800'
         }`}>
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-2 min-w-0">
             <button
               type="button"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
+              className={`p-1.5 rounded-lg transition-colors cursor-pointer shrink-0 ${
                 isDark ? 'bg-stone-800 hover:bg-stone-700 text-stone-200' : 'bg-stone-100 hover:bg-stone-200 text-stone-800'
               }`}
               aria-label="Toggle Navigation Menu"
             >
               {mobileMenuOpen ? <X size={18} /> : <Menu size={18} />}
             </button>
-            <AppLogo size="xs" showText={true} onClick={() => onNavigatePublic('/')} />
+            <AppLogo size="xs" showText={false} onClick={() => onNavigatePublic('/')} />
+            <div 
+              onClick={() => onNavigatePublic('/')}
+              className="flex flex-col text-left cursor-pointer min-w-0"
+            >
+              <div className="flex items-baseline gap-1 font-black font-serif tracking-tight leading-none whitespace-nowrap">
+                <span className={`text-xs sm:text-sm ${isDark ? 'text-red-500' : 'text-red-600'} whitespace-nowrap`}>
+                  News Bharat <span className="text-amber-500 font-sans font-extrabold text-[10px] sm:text-xs">PLUS</span>
+                </span>
+              </div>
+              <span className={`text-[8px] sm:text-[9px] font-bold uppercase tracking-wider hidden xs:inline whitespace-nowrap ${isDark ? 'text-stone-400' : 'text-stone-500'}`}>
+                {language === 'hi' ? 'न्यूज़ भारत प्लस' : 'Admin Panel'}
+              </span>
+            </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
             <div className={`flex items-center rounded-md border p-0.5 ${
               isDark ? 'bg-stone-800 border-stone-700' : 'bg-stone-100 border-stone-300'
             }`} role="group" aria-label="Select language">
@@ -401,7 +414,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
         </header>
 
         {/* Main Content Area */}
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto">
+        <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto min-w-0 max-w-full">
           {children}
         </main>
       </div>
